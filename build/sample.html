@@ -15,8 +15,42 @@
     <div id="target2" style="width: 600px; height: 400px;"></div>
 
     <script>
-        addVectorTable("target1","","","")
-        addVectorTable("target2","","","")
-        addVectorTable("targetX","","","")
+        const test_setting = {};
+        const demo_setting = {
+                //--- Basic ---
+                row_dir_line: true,
+                col_dir_line: true,
+                //line shape
+                //stroke_width: 2,
+                stroke: "#999",
+                //background color
+                background_color: "#eeeeee",
+                //text shape
+                text_font_size: 30,
+                text_font_stroke_width: 0.1,
+                text_font_stroke: "black",
+                text_margin_top: 0,
+                text_margin_bottom: 2,
+                text_margin_right: 5,
+                text_margin_left: 5,
+                //Outer frame
+                outer_frame: true,
+                outer_frame_stroke_width: 4,
+                outer_frame_stroke: "#333",
+                //Header
+                header_row: true,
+                header_col: true,
+                header_col_pos: 1,
+                header_stroke_width: 3,
+                header_stroke: "#555",
+                header_font_stroke_width: 3,
+                header_font_stroke: "blue",
+                header_background_color: "#dddddd",
+                //stripes
+                shima_shima: "white",
+            };
+
+        addVectorTable("target1",test_setting,"","")
+        //addVectorTable("target2",demo_setting,"","")
     </script>
 </html>
