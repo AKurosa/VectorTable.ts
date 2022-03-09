@@ -1,12 +1,6 @@
 {
 	"folders": [
 		{
-			"path": "build"
-		},
-		{
-			"path": "src"
-		},
-		{
 			"path": "."
 		}
 	]

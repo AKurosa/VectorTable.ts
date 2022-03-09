@@ -1,4 +1,20 @@
+/**
+ * Interface for Setting Data
+ * 
+ * @interface
+ */
 interface SettingVectorTable {
+    [prop: string]: any;
+}
+
+/**
+ * Interface for Header Data
+ * 
+ * @interface
+ */
+interface HeaderObject {
+    value: string;
+    type: string;
     [prop: string]: any;
 }
 
@@ -8,6 +24,7 @@ class VectorTable{
      * Check exist target element.
      * Throw error if no element.
      * @param  {string} id target ID
+     * @throws {string} throw error if can not catch element by id.
      */
     checkTargetId(id: string): void{
         const element: HTMLInputElement = <HTMLInputElement>document.getElementById(id);
@@ -45,6 +62,111 @@ class VectorTable{
         if(!('header_font_stroke' in setting)){setting.header_font_stroke = setting.text_font_stroke;} //If no header_font_stroke
         if(!('header_background_color' in setting)){setting.header_background_color = setting.background_color;} //If no header_background_color
     }
+    /**
+     * Gen divided data from input header data.
+     * @param  {any} head Header data
+     * @returns {Array<Array<HeaderObject>>} Devided header data.
+     * @throws {string} Header data is not Array.
+     * @throws {string} Header struct is not expected.
+     * @throws {string} row_span is smaller than 0.
+     * @throws {string} Header data has a worng data
+     * @throws {string} row_span has to be 1 or more
+     * @throws {string} row_span has to be same as header row count or less
+     */
+    divideHeader(head: any): Array<Array<HeaderObject>>{
+        if(toString.call(head) !== "[object Array]"){
+            throw Error("Header data should be Array");
+        }
+        let divideData: Array<Array<HeaderObject>> = new Array();
+        let flg_matrix: boolean = false;
+
+        //Check header struct
+        head.forEach((h1: any) => {
+            if(toString.call(h1) === "[object Array]"){ //more than 2 lines
+                flg_matrix =true;
+                return true;
+            }
+            else if(toString.call(h1) === "[object Object]"){//only 1 line
+                return true;
+            }else{
+                throw Error("Header data struct is not expected")
+            }
+        });
+
+        if(!flg_matrix){//if struct is 1D array
+            let lineData: Array<HeaderObject> = new Array();
+            head.forEach((element: HeaderObject) =>{
+                if("row_span" in element){
+                    if(element.row_span < 1){
+                        throw Error("row_span has to be 1 or more");
+                    }
+                    lineData.push(element);
+                    for(let i=1; i<element.row_span; i++){
+                        let temp: any = new Object();
+                        lineData.push(temp);
+                    }
+                }
+            });
+            divideData.push(lineData);
+        }else{// if struct is 2D array
+            for(let i=0; i<head.length; i++){
+                let row: Array<HeaderObject> = new Array();
+                divideData.push(row);
+            }
+
+            for(let i=0; i<head.length; i++){
+                for(let j=0; j<head[i].length; j++){
+                    if(toString.call(head[i][j]) !== "[object Object]"){
+                        throw Error("Header data has a worng data");
+                    }
+
+                    if("row_span" in head[i][j]){//If row span is 1 or more
+                        //Check row_span
+                        if(head[i][j].row_span < 1){
+                            throw Error("row_span has to be 1 or more");
+                        }else if(head[i][j].row_span > head.length - i){
+                            throw Error("row_span has to be same as header row count or less");
+                        }
+
+                        for(let k=i; k<i+head[i][j].row_span; k++){
+                            if("col_span" in head[i][j]){
+                                if(head[i][j].col_span < 1){
+                                    throw Error("col_span has to be 1 or more");
+                                }
+                                divideData[k].push(head[i][j]);
+                                for(let l=1; l<head[i][j].col_span; l++){
+                                    let temp: any = new Object();
+                                    divideData[k].push(temp);
+                                }
+                            }else{//If col span is undefined
+                                if(k==i){
+                                    divideData[k].push(head[i][j]);
+                                }else{
+                                    let temp: any = new Object();
+                                    divideData[k].push(temp);
+                                }
+                            }
+                        }
+                    }else{//If row span is undefined
+                        if("col_span" in head[i][j]){
+                            if(head[i][j].col_span < 1){
+                                throw Error("col_span has to be 1 or more");
+                            }
+                            divideData[i].push(head[i][j]);
+                            for(let k=1; k<head[i][j].col_span; k++){
+                                let temp: any = new Object();
+                                divideData[i].push(temp);
+                            }
+                        }else{//If col span is undifined
+                            divideData[i].push(head[i][j]);
+                        }
+                    }
+                }
+            }
+        }
+
+        return divideData;
+    }
 }
 /**
  * Drow Table using SVG.
@@ -52,13 +174,16 @@ class VectorTable{
  * @param  {SettingVectorTable} setting Drow Setting
  * @param  {Array<Array<object>>} head Table head
  * @param  {Array<Array<string>>} body Table body
+ * @throws {string} Throw error if error in function
  */
-function addVectorTable(id: string, setting: SettingVectorTable, head: Array<Array<object>>, body: Array<Array<string>>): void{
+function addVectorTable(id: string, setting: SettingVectorTable, head: any, body: Array<Array<string>>): void{
     try{
         let vectorTable: VectorTable = new VectorTable();
         vectorTable.checkTargetId(id);
         vectorTable.fillSetting(setting);
-        console.log(setting);
+        vectorTable.divideHeader(head);
+        let divideHeader: Array<Array<HeaderObject>> = vectorTable.divideHeader(head);
+        console.log(divideHeader);
     }catch(error){
         throw new Error(error + ' [vectorTable]');
     }
