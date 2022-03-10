@@ -89,7 +89,17 @@
         });
         headerMatrix.push(headerLine2);
 
-        addVectorTable("target1",test_setting,headerMatrix,"")
+        let dataMatrix = new Array();
+        for(let i=0; i<10; i++){
+            let dataLine = new Array();
+            dataLine.push(i);
+            for(let j=0; j<5; j++){
+                dataLine.push("Dj" + i +"-"+ j);
+            }
+            dataMatrix.push(dataLine);
+        }
+
+        addVectorTable("target1",test_setting,headerMatrix,dataMatrix)
         //addVectorTable("target2",demo_setting,"","")
     </script>
 </html>

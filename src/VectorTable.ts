@@ -18,8 +18,16 @@ interface HeaderObject {
     [prop: string]: any;
 }
 
+class CellSize{
+    public w: number = 0.0;
+    public h: number = 0.0;
+    public row: boolean = true;
+    public col: boolean = true;
+}
+
 /** Class Drow vector table */
 class VectorTable{
+    private theXmlns: string = "http://www.w3.org/2000/svg";
     /**
      * Check exist target element.
      * Throw error if no element.
@@ -164,8 +172,104 @@ class VectorTable{
                 }
             }
         }
-
         return divideData;
+    }
+    /**
+     * Get size of svg text
+     * @param  {HTMLElement} text element whitch was wanted to get size
+     * @returns {[number, number]} text's width and height
+     */
+    getTextWH(text: HTMLElement): any{
+        const svg: HTMLElement = <HTMLElement>document.createElementNS(this.theXmlns, "svg");
+        const g: HTMLElement = <HTMLElement>document.createElementNS(this.theXmlns,"g");
+        g.setAttribute("name", "content");
+        g.appendChild(text);
+        svg.appendChild(g);
+
+        document.body.appendChild(svg);
+        const box: any = (svg.querySelector("[name=content") as any).getBBox();
+        svg.remove();
+        return [box.width, box.height];
+    }
+
+    getTextWHList(setting: SettingVectorTable, divHead: Array<Array<HeaderObject>>, body: Array<Array<string>>): Array<Array<CellSize>>{
+        let cellDataMatrix = new Array<Array<CellSize>>();
+        
+        //header
+        divHead.forEach(divLine=>{
+            let cellDataVector = new Array<CellSize>();
+            divLine.forEach(cell=>{
+                let cellData = new CellSize();
+                if("value" in cell){
+                    let text: HTMLElement = <HTMLElement>document.createElementNS(this.theXmlns, "text");
+                    text.setAttribute('x', '0');
+                    text.setAttribute('y', '0');
+                    text.setAttribute('font-size', setting.text_font_size);
+                    text.setAttribute("stroke", setting.text_font_stroke);
+                    text.setAttribute("stroke-width", setting.text_font_stroke_width);
+                    text.textContent = cell.value;
+
+                    [cellData.w, cellData.h] = this.getTextWH(text);
+                    if("col_span" in cell){
+                        cellData.w /= cell.col_span;
+                    }
+                    text.remove();
+                }
+                cellDataVector.push(cellData);
+            });
+            cellDataMatrix.push(cellDataVector);
+        });
+
+        for(let i=0; i<divHead.length; i++){
+            for(let j=0; j<divHead[i].length; j++){
+                if("col_span" in divHead[i][j]){
+                    for(let k=1; k<divHead[i][j].col_span; k++){
+                        cellDataMatrix[i][j+k].w = cellDataMatrix[i][j].w;
+                        cellDataMatrix[i][j+k].h = cellDataMatrix[i][j].h;
+                        cellDataMatrix[i][j+k].row = cellDataMatrix[i][j].row;
+                        cellDataMatrix[i][j+k].col = cellDataMatrix[i][j].col;
+                    }
+                    for(let k=0; k<divHead[i][j].col_span-1; k++){
+                        cellDataMatrix[i][j+k].col = false;
+                    }
+                }
+                if("row_span" in divHead[i][j]){
+                    for(let k=1; k<divHead[i][j].row_span; k++){
+                        cellDataMatrix[i+k][j].w = cellDataMatrix[i][j].w;
+                        cellDataMatrix[i+k][j].h = cellDataMatrix[i][j].h;
+                        cellDataMatrix[i+k][j].row = cellDataMatrix[i][j].row;
+                        cellDataMatrix[i+k][j].col = cellDataMatrix[i][j].col;
+                    }
+                    for(let k=0; k<divHead[i][j].row_span-1; k++){
+                        cellDataMatrix[i+k][j].row = false;
+                    }
+                }
+            }   
+        }
+
+        //body
+        body.forEach(line =>{
+            let cellDataVector = new Array<CellSize>();
+            line.forEach(cell=>{
+                let cellData = new CellSize();
+                let text = <HTMLElement>document.createElementNS(this.theXmlns,"text");
+                text.setAttribute('x', '0');
+                text.setAttribute('y', '0');
+                text.setAttribute('font-size', setting.text_font_size);
+                text.setAttribute("stroke", setting.text_font_stroke);
+                text.setAttribute("stroke-width", setting.text_font_stroke_width);
+
+                text.textContent = cell;
+
+                [cellData.w, cellData.h] = this.getTextWH(text);
+                text.remove();
+
+                cellDataVector.push(cellData);
+            });
+            cellDataMatrix.push(cellDataVector);
+        });
+
+        return cellDataMatrix;
     }
 }
 /**
@@ -182,8 +286,9 @@ function addVectorTable(id: string, setting: SettingVectorTable, head: any, body
         vectorTable.checkTargetId(id);
         vectorTable.fillSetting(setting);
         vectorTable.divideHeader(head);
-        let divideHeader: Array<Array<HeaderObject>> = vectorTable.divideHeader(head);
-        console.log(divideHeader);
+        let divideHeader = vectorTable.divideHeader(head);
+        let cellMatrix = vectorTable.getTextWHList(setting, divideHeader, body);
+        console.log(cellMatrix);
     }catch(error){
         throw new Error(error + ' [vectorTable]');
     }
