@@ -191,7 +191,13 @@ class VectorTable{
         svg.remove();
         return [box.width, box.height];
     }
-
+    /**
+     * Get size (width and height) of svg text on Table.
+     * @param  {SettingVectorTable} setting Drow Setting
+     * @param  {Array<Array<HeaderObject>>} divHead Divided table header data
+     * @param  {Array<Array<string>>} body table body data
+     * @returns {Array<Array<CellSize>>} matrix contains text size
+     */
     getTextWHList(setting: SettingVectorTable, divHead: Array<Array<HeaderObject>>, body: Array<Array<string>>): Array<Array<CellSize>>{
         let cellDataMatrix = new Array<Array<CellSize>>();
         
@@ -271,6 +277,35 @@ class VectorTable{
 
         return cellDataMatrix;
     }
+    /**
+     * Get max width of column and max height of row
+     * 
+     * @param  {CellSize[][]} cellDataMatrix Text size of SVG at table.
+     * @returns {[Array<number>, Array<number>]} Max width of column, max height of row
+     */
+    getMaxWidthAndHeight(cellDataMatrix: CellSize[][]): any{
+        let maxColWidths: Array<number> = new Array<number>(cellDataMatrix[0].length);
+        let maxRowHeights: Array<number> = new Array<number>(cellDataMatrix.length);
+
+        maxColWidths.fill(0);
+        maxRowHeights.fill(0);
+
+        for(let i=0; i<cellDataMatrix.length;i++){
+            for(let j=0; j<cellDataMatrix[i].length; j++){
+                //Max wight
+                if(maxColWidths[j] < cellDataMatrix[i][j].w){
+                    maxColWidths[j] = cellDataMatrix[i][j].w;
+                }
+
+                //Max height
+                if(maxRowHeights[i] < cellDataMatrix[i][j].h){
+                    maxRowHeights[i] = cellDataMatrix[i][j].h;
+                }
+            }
+        }
+
+        return [maxColWidths, maxRowHeights];
+    }
 }
 /**
  * Drow Table using SVG.
@@ -288,7 +323,10 @@ function addVectorTable(id: string, setting: SettingVectorTable, head: any, body
         vectorTable.divideHeader(head);
         let divideHeader = vectorTable.divideHeader(head);
         let cellMatrix = vectorTable.getTextWHList(setting, divideHeader, body);
-        console.log(cellMatrix);
+        let maxColWidths, maxRowHeights;
+        [maxColWidths, maxRowHeights] = vectorTable.getMaxWidthAndHeight(cellMatrix);
+        console.log(maxColWidths);
+        console.log(maxRowHeights);
     }catch(error){
         throw new Error(error + ' [vectorTable]');
     }
