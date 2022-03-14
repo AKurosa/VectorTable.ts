@@ -23,6 +23,8 @@ class CellSize{
     public h: number = 0.0;
     public row: boolean = true;
     public col: boolean = true;
+    public x: number = 0.0;
+    public y: number = 0.0;
 }
 
 /** Class Drow vector table */
@@ -306,6 +308,87 @@ class VectorTable{
 
         return [maxColWidths, maxRowHeights];
     }
+    /**
+     * Set character position at table.
+     * 
+     * @param  {SettingVectorTable} setting
+     * @param  {Array<Array<CellSize>>} cellDataMatrix
+     * @param  {Array<number>} maxColWidths
+     * @param  {Array<number>} maxRowHeights
+     * @param  {number} numHeaderRow
+     */
+    setCharPos(setting: SettingVectorTable, cellDataMatrix: Array<Array<CellSize>>, maxColWidths: Array<number>, maxRowHeights: Array<number>, numHeaderRow: number){
+        //x direction
+        for(let i=0; i<cellDataMatrix.length; i++){
+            //text width + margin left
+            cellDataMatrix[i][0].x = setting.text_margin_left;
+            for(let j=1; j<cellDataMatrix[i].length; j++){
+                cellDataMatrix[i][j].x = cellDataMatrix[i][j-1].x + maxColWidths[j-1] + setting.text_margin_left;
+            }
+            // + margin right
+            for(let j=1; j<cellDataMatrix[i].length; j++){
+                cellDataMatrix[i][j].x += setting.text_margin_right * j;
+            }
+
+            if(setting.col_dir_line){
+                // + col dir line width
+                for(let j=0; j<cellDataMatrix[i].length; j++){
+                    cellDataMatrix[i][j].x += setting.stroke_width * (j+1);
+                }
+                //+ Outer frame line width
+                if(setting.outer_frame){
+                    let tempOuterWidth = setting.outer_frame_stroke_width - setting.stroke_width;
+                    for(let j=0; j<cellDataMatrix[i].length; j++){
+                        cellDataMatrix[i][j].x += tempOuterWidth;
+                    }
+                }
+                //+ header line width
+                if(setting.header_col){
+                    let tempHeaderWidth = setting.header_stroke_width - setting.stroke_width;
+                    for(let j=setting.header_col_pos; j<cellDataMatrix[i].length; j++){
+                        cellDataMatrix[i][j].x += tempHeaderWidth;
+                    }
+                }
+            }
+        }
+
+        //y direction
+        for(let j=0; j<cellDataMatrix[0].length; j++){
+            //text height + margin top
+            cellDataMatrix[0][j].y = maxRowHeights[0] + setting.text_margin_top;
+            for(let i=1; i<cellDataMatrix.length; i++){
+                cellDataMatrix[i][j].y = cellDataMatrix[i-1][j].y + maxRowHeights[i] + setting.text_margin_top;
+            }
+
+            //+ margin bottom
+            for(let i=1; i<cellDataMatrix.length; i++){
+                cellDataMatrix[i][j].y += setting.text_margin_bottom * i;
+            }
+
+            if(setting.row_dir_line){
+                // + row dir line width
+                for(let i=0; i<cellDataMatrix.length; i++){
+                    cellDataMatrix[i][j].y += setting.stroke_width * (i+1);
+                }
+
+                // + Outer frame line width
+                if(setting.outer_frame){
+                    let tempOuterHeight = setting.outer_frame_stroke_width - setting.stroke_width;
+                    for(let i=0; i<cellDataMatrix.length; i++){
+                        cellDataMatrix[i][j].y += tempOuterHeight;
+                    }
+                }
+
+                //+ header line width
+                if(setting.header_row){
+                    let tempHeaderHeight = setting.outer_frame_stroke_width - setting.stroke_width;
+                    for(let i=numHeaderRow; i<cellDataMatrix.length; i++){
+                        cellDataMatrix[i][j].y += tempHeaderHeight;
+                    }
+                }
+            }
+        }
+    }
 }
 /**
  * Drow Table using SVG.
@@ -325,8 +408,8 @@ function addVectorTable(id: string, setting: SettingVectorTable, head: any, body
         let cellMatrix = vectorTable.getTextWHList(setting, divideHeader, body);
         let maxColWidths, maxRowHeights;
         [maxColWidths, maxRowHeights] = vectorTable.getMaxWidthAndHeight(cellMatrix);
-        console.log(maxColWidths);
-        console.log(maxRowHeights);
+        vectorTable.setCharPos(setting, cellMatrix, maxColWidths, maxRowHeights, divideHeader.length);
+        console.log(cellMatrix);
     }catch(error){
         throw new Error(error + ' [vectorTable]');
     }
