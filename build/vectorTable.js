@@ -9,6 +9,12 @@ class CellSize {
         this.y = 0.0;
     }
 }
+class SvgSize {
+    constructor() {
+        this.w = 0.0;
+        this.h = 0.0;
+    }
+}
 /** Class Drow vector table */
 class VectorTable {
     constructor() {
@@ -401,6 +407,54 @@ class VectorTable {
             }
         }
     }
+    /**
+     * Calculate SVG area size.
+     *
+     * @param  {SettingVectorTable} setting
+     * @param  {any} maxColWidths
+     * @param  {any} maxRowHeights
+     * @returns {SvgSize} SVG area size
+     */
+    calSvgSize(setting, maxColWidths, maxRowHeights) {
+        let svgSize = new SvgSize();
+        //Width
+        let numCol = 0;
+        if (setting.col_dir_line) {
+            if (setting.outer_frame) {
+                svgSize.w += setting.outer_frame_stroke_width * 2;
+                numCol += 2;
+            }
+            if (setting.header_col) {
+                svgSize.w += setting.header_stroke_width;
+                numCol++;
+            }
+            let n = maxColWidths.length + 1 - numCol;
+            svgSize.w += n * setting.stroke_width;
+        }
+        let margin_width = setting.text_margin_right + setting.text_margin_left;
+        maxColWidths.forEach((mw) => {
+            svgSize.w += mw + margin_width;
+        });
+        //height
+        let numRow = 0;
+        if (setting.row_dir_line) {
+            if (setting.outer_frame) {
+                svgSize.h += setting.outer_frame_stroke_width * 2;
+                numRow += 2;
+            }
+            if (setting.header_row) {
+                svgSize.h += setting.header_stroke_width;
+                numCol++;
+            }
+            let n = maxRowHeights.length + 1 - numRow;
+            svgSize.h += n * setting.stroke_width;
+        }
+        let margin_height = setting.text_margin_top + setting.text_margin_bottom;
+        maxRowHeights.forEach((mh) => {
+            svgSize.h += mh + margin_height;
+        });
+        return svgSize;
+    }
 }
 /**
  * Drow Table using SVG.
@@ -421,7 +475,8 @@ function addVectorTable(id, setting, head, body) {
         let maxColWidths, maxRowHeights;
         [maxColWidths, maxRowHeights] = vectorTable.getMaxWidthAndHeight(cellMatrix);
         vectorTable.setCharPos(setting, cellMatrix, maxColWidths, maxRowHeights, divideHeader.length);
-        console.log(cellMatrix);
+        let svgSize = vectorTable.calSvgSize(setting, maxColWidths, maxRowHeights);
+        console.log(svgSize);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');

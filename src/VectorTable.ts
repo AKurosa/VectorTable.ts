@@ -27,6 +27,11 @@ class CellSize{
     public y: number = 0.0;
 }
 
+class SvgSize{
+    public w: number = 0.0;
+    public h: number = 0.0;
+}
+
 /** Class Drow vector table */
 class VectorTable{
     private theXmlns: string = "http://www.w3.org/2000/svg";
@@ -389,6 +394,57 @@ class VectorTable{
             }
         }
     }
+    /**
+     * Calculate SVG area size.
+     * 
+     * @param  {SettingVectorTable} setting
+     * @param  {any} maxColWidths
+     * @param  {any} maxRowHeights
+     * @returns {SvgSize} SVG area size
+     */
+    calSvgSize(setting: SettingVectorTable, maxColWidths: any, maxRowHeights: any): SvgSize{
+        let svgSize: SvgSize = new SvgSize();
+
+        //Width
+        let numCol = 0;
+        if(setting.col_dir_line){
+            if(setting.outer_frame){
+                svgSize.w += setting.outer_frame_stroke_width * 2;
+                numCol += 2;
+            }
+            if(setting.header_col){
+                svgSize.w += setting.header_stroke_width;
+                numCol++;
+            }
+            let n = maxColWidths.length + 1 - numCol;
+            svgSize.w += n * setting.stroke_width;
+        }
+        let margin_width = setting.text_margin_right + setting.text_margin_left;
+        maxColWidths.forEach((mw: any) =>{
+            svgSize.w += mw + margin_width;
+        });
+
+        //height
+        let numRow = 0;
+        if(setting.row_dir_line){
+            if(setting.outer_frame){
+                svgSize.h += setting.outer_frame_stroke_width * 2;
+                numRow += 2;
+            }
+            if(setting.header_row){
+                svgSize.h += setting.header_stroke_width;
+                numCol++;
+            }
+            let n = maxRowHeights.length + 1 - numRow;
+            svgSize.h += n * setting.stroke_width;
+        }
+        let margin_height = setting.text_margin_top + setting.text_margin_bottom;
+        maxRowHeights.forEach((mh: any) =>{
+            svgSize.h += mh + margin_height;
+        });
+        
+        return svgSize;
+    }
 }
 /**
  * Drow Table using SVG.
@@ -409,7 +465,8 @@ function addVectorTable(id: string, setting: SettingVectorTable, head: any, body
         let maxColWidths, maxRowHeights;
         [maxColWidths, maxRowHeights] = vectorTable.getMaxWidthAndHeight(cellMatrix);
         vectorTable.setCharPos(setting, cellMatrix, maxColWidths, maxRowHeights, divideHeader.length);
-        console.log(cellMatrix);
+        let svgSize = vectorTable.calSvgSize(setting, maxColWidths, maxRowHeights);
+        console.log(svgSize);
     }catch(error){
         throw new Error(error + ' [vectorTable]');
     }
