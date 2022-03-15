@@ -40,72 +40,223 @@ class VectorTable {
         if (!('row_dir_line' in setting)) {
             setting.row_dir_line = true;
         } //If no row_dir_line
+        else {
+            if (toString.call(setting.row_dir_line) != "[object Boolean]") {
+                throw Error("row_dir_line in setting has to be Boolean");
+            }
+        }
         if (!('col_dir_line' in setting)) {
             setting.col_dir_line = true;
         } //If no col_dir_line
+        else {
+            if (toString.call(setting.col_dir_line) != "[object Boolean]") {
+                throw Error("col_dir_line in setting has to be Boolean");
+            }
+        }
         if (!('stroke_width' in setting)) {
             setting.stroke_width = 1.0;
         } //If no stroke_width
+        else {
+            if (toString.call(setting.stroke_width) != "[object Number]") {
+                throw Error("stroke_width in setting has to be Number");
+            }
+            if (setting.stroke_width < 0) {
+                throw Error("stroke_width in setting has to be 0.0 or over");
+            }
+        }
         if (!('stroke' in setting)) {
             setting.stroke = 'black';
         } //If no stroke
+        else {
+            if (toString.call(setting.stroke) != "[object String]") {
+                throw Error("stroke in setting has to be String");
+            }
+        }
         if (!('background_color' in setting)) {
             setting.background_color = 'white';
         } //If no background_color
+        else {
+            if (toString.call(setting.background_color) != "[object String]") {
+                throw Error("background_color in setting has to be String");
+            }
+        }
         if (!('text_font_size' in setting)) {
             setting.text_font_size = 10.0;
         } //If no text_font_size
+        else {
+            if (toString.call(setting.text_font_size) != "[object Number]") {
+                throw Error("text_font_size in setting has to be Number");
+            }
+            if (setting.text_font_size < 0) {
+                throw Error("text_font_size in setting has to be 0.0 or over");
+            }
+        }
         if (!('text_font_stroke_width' in setting)) {
             setting.text_font_stroke_width = 0.1;
         } //If no text_font_stroke_width
+        else {
+            if (toString.call(setting.text_font_stroke_width) != "[object Number]") {
+                throw Error("text_font_stroke_width in setting has to be Number");
+            }
+            if (setting.text_font_stroke_width < 0) {
+                throw Error("text_font_stroke_width in setting has to be 0.0 or over");
+            }
+        }
         if (!('text_font_stroke' in setting)) {
             setting.text_font_stroke = 'black';
         } //If no text_font_stroke
+        else {
+            if (toString.call(setting.text_font_stroke) != "[object String]") {
+                throw Error("text_font_stroke in setting has to be Number");
+            }
+        }
         if (!('text_margin_top' in setting)) {
             setting.text_margin_top = 0.0;
         } //If no text_margin_top
+        else {
+            if (toString.call(setting.text_margin_top) != "[object Number]") {
+                throw Error("text_margin_top in setting has to be Number");
+            }
+            if (setting.text_margin_top < 0) {
+                throw Error("text_margin_top in setting has to be 0.0 or over");
+            }
+        }
         if (!('text_margin_bottom' in setting)) {
             setting.text_margin_bottom = 0.0;
         } //If no text_margin_bottom
+        else {
+            if (toString.call(setting.text_margin_bottom) != "[object Number]") {
+                throw Error("text_margin_bottom in setting has to be Number");
+            }
+            if (setting.text_margin_bottom < 0) {
+                throw Error("text_margin_bottom in setting has to be 0.0 or over");
+            }
+        }
         if (!('text_margin_right' in setting)) {
             setting.text_margin_right = 0.0;
         } //If no text_margin_right
+        else {
+            if (toString.call(setting.text_margin_right) != "[object Number]") {
+                throw Error("text_margin_right in setting has to be Number");
+            }
+            if (setting.text_margin_right < 0) {
+                throw Error("text_margin_right in setting has to be 0.0 or over");
+            }
+        }
         if (!('text_margin_left' in setting)) {
             setting.text_margin_left = 0.0;
         } //If no text_margin_left
+        else {
+            if (toString.call(setting.text_margin_left) != "[object Number]") {
+                throw Error("text_margin_left in setting has to be Number");
+            }
+            if (setting.text_margin_left < 0) {
+                throw Error("text_margin_left in setting has to be 0.0 or over");
+            }
+        }
         if (!('outer_frame' in setting)) {
             setting.outer_frame = false;
         } //If no outer_frame
+        else {
+            if (toString.call(setting.outer_frame) != "[object Boolean]") {
+                throw Error("outer_frame in setting has to be Boolean");
+            }
+        }
         if (!('outer_frame_stroke_width' in setting)) {
             setting.outer_frame_stroke_width = setting.stroke_width;
         } //If no outer_frame_stroke_width
+        else {
+            if (toString.call(setting.outer_frame_stroke_width) != "[object Number]") {
+                throw Error("outer_frame_stroke_width in setting has to be Number");
+            }
+            if (setting.outer_frame_stroke_width < 0) {
+                throw Error("outer_frame_stroke_width in setting has to be 0.0 or over");
+            }
+        }
         if (!('outer_frame_stroke' in setting)) {
             setting.outer_frame_stroke = setting.stroke;
         } //If no outer_frame_stroke
+        else {
+            if (toString.call(setting.outer_frame_stroke) != "[object String]") {
+                throw Error("outer_frame_stroke in setting has to be String");
+            }
+        }
         if (!('header_row' in setting)) {
             setting.header_row = false;
         } //If no header_row
+        else {
+            if (toString.call(setting.header_row) != "[object Boolean]") {
+                throw Error("header_row in setting has to be Boolean");
+            }
+        }
         if (!('header_col' in setting)) {
             setting.header_col = false;
         } //If no header_col
+        else {
+            if (toString.call(setting.header_col) != "[object Boolean]") {
+                throw Error("header_col in setting has to be Boolean");
+            }
+        }
         if (!('header_col_pos' in setting)) {
             setting.header_col_pos = 0;
         } //If no header_col_pos
+        else {
+            if (toString.call(setting.header_col_pos) != "[object Number]") {
+                throw Error("header_col_pos in setting has to be Number");
+            }
+            if (!Number.isInteger(setting.header_col_pos)) {
+                throw Error("header_col_pos in setting has to be Integer");
+            }
+            if (setting.header_col_pos < 0) {
+                throw Error("header_col_pos in setting has to be 0 or over");
+            }
+        }
         if (!('header_stroke_width' in setting)) {
             setting.header_stroke_width = setting.stroke_width;
         } //If no header_stroke_width
+        else {
+            if (toString.call(setting.header_stroke_width) != "[object Number]") {
+                throw Error("header_stroke_width in setting has to be Number");
+            }
+            if (setting.header_stroke_width < 0) {
+                throw Error("header_stroke_width in setting has to be 0.0 or over");
+            }
+        }
         if (!('header_stroke' in setting)) {
             setting.header_stroke = setting.stroke;
         } //If no header_stroke
+        else {
+            if (toString.call(setting.header_stroke) != "[object String]") {
+                throw Error("header_stroke in setting has to be String");
+            }
+        }
         if (!('header_font_stroke_width' in setting)) {
             setting.header_font_stroke_width = setting.text_font_stroke_width;
         } //If no header_font_stroke_width
+        else {
+            if (toString.call(setting.header_font_stroke_width) != "[object Number]") {
+                throw Error("header_font_stroke_width in setting has to be Number");
+            }
+            if (setting.header_font_stroke_width < 0) {
+                throw Error("header_font_stroke_width in setting has to be 0.0 or over");
+            }
+        }
         if (!('header_font_stroke' in setting)) {
             setting.header_font_stroke = setting.text_font_stroke;
         } //If no header_font_stroke
+        else {
+            if (toString.call(setting.header_font_stroke) != "[object String]") {
+                throw Error("header_font_stroke in setting has to be String");
+            }
+        }
         if (!('header_background_color' in setting)) {
             setting.header_background_color = setting.background_color;
         } //If no header_background_color
+        else {
+            if (toString.call(setting.header_background_color) != "[object String]") {
+                throw Error("header_background_color in setting has to be String");
+            }
+        }
     }
     /**
      * Gen divided data from input header data.
