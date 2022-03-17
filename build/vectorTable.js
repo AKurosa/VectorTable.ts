@@ -15,9 +15,16 @@ class SvgSize {
         this.h = 0.0;
     }
 }
+const theXmlns = "http://www.w3.org/2000/svg";
 const classVtTable = "_vtTable";
+const classVtContext = "_vt-context";
+const classVtContextBase = "_vt-context-base";
 const zoomDelta = 1.1;
 let panFlg = false;
+const contextmenuNum = 1;
+const contextFontSize = 15;
+const contextmenuWidth = 100;
+const textOffset = 0.2;
 // Reset mousemove event by mouseup on document
 function mouseUp(event) {
     panFlg = false;
@@ -26,12 +33,12 @@ document.addEventListener('mouseup', mouseUp);
 /** Class Drow vector table */
 class VectorTable {
     constructor() {
-        this.theXmlns = "http://www.w3.org/2000/svg";
-        this.panTarget = document.createElementNS(this.theXmlns, "svg");
+        this.panTarget = document.createElementNS(theXmlns, "svg");
         this.panStartPt = this.panTarget.createSVGPoint();
         this.panViewBox = new Array(4);
         this.panTargetW = 0.0;
         this.panTargetH = 0.0;
+        this.contextmenuTarget = document.createElement("div");
     }
     /**
      * Check exist target element.
@@ -383,8 +390,8 @@ class VectorTable {
      * @returns {[number, number]} text's width and height
      */
     getTextWH(text) {
-        const svg = document.createElementNS(this.theXmlns, "svg");
-        const g = document.createElementNS(this.theXmlns, "g");
+        const svg = document.createElementNS(theXmlns, "svg");
+        const g = document.createElementNS(theXmlns, "g");
         g.setAttribute("name", "content");
         g.appendChild(text);
         svg.appendChild(g);
@@ -408,7 +415,7 @@ class VectorTable {
             divLine.forEach(cell => {
                 let cellData = new CellSize();
                 if ("value" in cell) {
-                    let text = document.createElementNS(this.theXmlns, "text");
+                    let text = document.createElementNS(theXmlns, "text");
                     text.setAttribute('x', '0');
                     text.setAttribute('y', '0');
                     text.setAttribute('font-size', setting.text_font_size);
@@ -456,7 +463,7 @@ class VectorTable {
             let cellDataVector = new Array();
             line.forEach(cell => {
                 let cellData = new CellSize();
-                let text = document.createElementNS(this.theXmlns, "text");
+                let text = document.createElementNS(theXmlns, "text");
                 text.setAttribute('x', '0');
                 text.setAttribute('y', '0');
                 text.setAttribute('font-size', setting.text_font_size);
@@ -681,7 +688,7 @@ class VectorTable {
         }
     }
     /**
-     * Mouse down Event for pan
+     * Mouse down Event for pan.
      *
      * @param  {HTMLElementEvent<HTMLElement>} event
      */
@@ -701,6 +708,11 @@ class VectorTable {
         pt.y = event.y;
         this.panStartPt = pt.matrixTransform(this.panTarget.getScreenCTM().inverse());
     }
+    /**
+     * Mouse move Event for pan.
+     *
+     * @param  {HTMLElementEvent<HTMLElement>} event
+     */
     panMouseMove(event) {
         if (panFlg) {
             let pt = this.panTarget.createSVGPoint();
@@ -723,8 +735,71 @@ class VectorTable {
                 this.panViewBox[1] = this.panTargetH - this.panViewBox[3];
             }
             this.panTarget.setAttribute("viewBox", this.panViewBox.join(" "));
-            console.log(this.panViewBox);
         }
+    }
+    /**
+     * Contextmenu Event
+     *
+     * @param  {HTMLElementEvent<HTMLElement>} event
+     */
+    addContextmenu(event) {
+        event.preventDefault();
+        let contexts = document.getElementsByClassName(classVtContext);
+        Array.from(contexts).forEach(element => {
+            element.remove();
+        });
+        this.contextmenuTarget = event.target;
+        while (!this.contextmenuTarget.classList.contains(classVtTable)) {
+            this.contextmenuTarget = this.contextmenuTarget.parentElement;
+        }
+        let ww = window.innerWidth;
+        let wh = window.innerHeight;
+        let style = "position: absolute; top: 0; left: 0; width: " + ww + "px; height: " + wh + "px;";
+        let div = document.createElement("div");
+        div.setAttribute("style", style);
+        div.classList.add(classVtContext);
+        div.classList.add(classVtContextBase);
+        let contextSvg = document.createElementNS(theXmlns, "svg");
+        contextSvg.setAttribute("width", "100%");
+        contextSvg.setAttribute("height", "100%");
+        let containerShadow = document.createElementNS(theXmlns, "rect");
+        containerShadow.setAttribute("x", (event.pageX + 3).toString());
+        containerShadow.setAttribute("y", (event.pageY + 3).toString());
+        containerShadow.setAttribute("height", (contextmenuNum * contextFontSize).toString());
+        containerShadow.setAttribute("width", contextmenuWidth.toString());
+        containerShadow.setAttribute("fill", "black");
+        containerShadow.setAttribute("fill-opacity", "30%");
+        contextSvg.appendChild(containerShadow);
+        let container = document.createElementNS(theXmlns, "rect");
+        container.setAttribute("x", event.pageX.toString());
+        container.setAttribute("y", event.pageY.toString());
+        container.setAttribute("height", (contextmenuNum * contextFontSize).toString());
+        container.setAttribute("width", contextmenuWidth.toString());
+        container.setAttribute("fill", "white");
+        contextSvg.appendChild(container);
+        //Save
+        let menuSave = document.createElementNS(theXmlns, "text");
+        menuSave.setAttribute("x", event.pageX.toString());
+        menuSave.setAttribute("y", (event.pageY + contextFontSize - contextFontSize * textOffset).toString());
+        menuSave.setAttribute("font-size", contextFontSize.toString());
+        menuSave.setAttribute("stroke", "black");
+        menuSave.setAttribute("fill", "black");
+        menuSave.setAttribute("stroke-width", "0.05");
+        menuSave.textContent = "Save as PNG";
+        contextSvg.appendChild(menuSave);
+        let menuBoxSave = document.createElementNS(theXmlns, "rect");
+        menuBoxSave.setAttribute("x", event.pageX.toString());
+        menuBoxSave.setAttribute("y", event.pageY.toString());
+        menuBoxSave.setAttribute("width", contextmenuWidth.toString());
+        menuBoxSave.setAttribute("height", contextFontSize.toString());
+        menuBoxSave.setAttribute("fill", "black");
+        menuBoxSave.setAttribute("fill-opacity", "0%");
+        //menuBoxSave.addEventListener("mouseover", _vtContextMouseOver);
+        //menuBoxSave.addEventListener("mouseleave", _vtContextMouseLeave);
+        //menuBoxAave.addEventListener("mousedown", _vtSaveAsPng);
+        contextSvg.appendChild(menuBoxSave);
+        div.appendChild(contextSvg);
+        document.body.appendChild(div);
     }
     /**
      * Create svg element in target element
@@ -741,7 +816,7 @@ class VectorTable {
         const viewBoxText = "0 0 " + elemWidth + " " + elemHeight;
         let asp = Math.min(elemWidth / svgSize.w, elemHeight / svgSize.h);
         //Create SVG
-        let svg = document.createElementNS(this.theXmlns, "svg");
+        let svg = document.createElementNS(theXmlns, "svg");
         svg.setAttribute("width", elemWidth.toString());
         svg.setAttribute("height", elemHeight.toString());
         svg.setAttribute("viewBox", viewBoxText);
@@ -755,6 +830,7 @@ class VectorTable {
         element.addEventListener('wheel', this.zoomByWheel);
         element.addEventListener('mousedown', this.panMouseDown);
         element.addEventListener('mousemove', this.panMouseMove);
+        element.addEventListener("contextmenu", this.addContextmenu);
         return [svg, asp];
     }
 }
