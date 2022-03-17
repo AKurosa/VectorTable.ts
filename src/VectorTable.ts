@@ -18,6 +18,13 @@ interface HeaderObject {
     [prop: string]: any;
 }
 
+interface HTMLElementEvent<T extends HTMLElement> extends Event{
+    target: T;
+    x: number;
+    y: number;
+    deltaY: number;
+}
+
 class CellSize{
     public w: number = 0.0;
     public h: number = 0.0;
@@ -32,10 +39,34 @@ class SvgSize{
     public h: number = 0.0;
 }
 
+const classVtTable = "_vtTable";
+const zoomDelta = 1.1;
+let panFlg = false;
+
+// Reset mousemove event by mouseup on document
+function mouseUp(event: HTMLElementEvent<HTMLElement>){
+    panFlg = false;
+}
+document.addEventListener('mouseup', mouseUp as EventListenerOrEventListenerObject);
+
 /** Class Drow vector table */
 class VectorTable{
-    private theXmlns: string = "http://www.w3.org/2000/svg";
-    private classVtTable: string = "_vtTable";
+    private theXmlns: string;
+    private panStartPt: DOMPoint;
+    private panTarget: SVGSVGElement;
+    private panViewBox: Array<number>;
+    private panTargetW: number;
+    private panTargetH: number;
+
+    constructor(){
+        this.theXmlns = "http://www.w3.org/2000/svg";
+        this.panTarget = document.createElementNS(this.theXmlns, "svg") as SVGSVGElement;
+        this.panStartPt = this.panTarget.createSVGPoint();
+        this.panViewBox = new Array<number>(4);
+        this.panTargetW = 0.0;
+        this.panTargetH = 0.0;
+    }
+
     /**
      * Check exist target element.
      * Throw error if no element.
@@ -598,6 +629,124 @@ class VectorTable{
         return svgSize;
     }
     /**
+     * Mouse wheel Event
+     * 
+     * @param  {HTMLElementEvent<HTMLElement>} event
+     */
+    zoomByWheel(event: HTMLElementEvent<HTMLElement>){
+        event.preventDefault();
+
+        let table = event.target as HTMLElement;
+
+        while(!table.classList.contains(classVtTable)){
+            table = table.parentElement as HTMLElement;
+        }
+
+        if(table){
+            let tableView = (table.getAttribute("viewBox") as string).split(" ");
+            const tableW = Number(table.getAttribute("width"));
+            const tableH = Number(table.getAttribute("height"));
+
+            let svgElem = table as any as SVGSVGElement;
+            let pt = svgElem.createSVGPoint();
+            pt.x = event.x;
+            pt.y = event.y;
+
+            const ptTable = pt.matrixTransform((svgElem.getScreenCTM() as DOMMatrix).inverse());
+            let newViweW, newViewH, newViewX, newViewY: number;
+
+            if(event.deltaY > 0){
+                newViweW = Number(tableView[2])*zoomDelta;
+                newViewH = Number(tableView[3])*zoomDelta;
+                if(newViweW > tableW){
+                    newViweW = tableW;
+                }
+                if(newViewH > tableH){
+                    newViewH = tableH;
+                }
+
+                newViewX = ptTable.x + (Number(tableView[0]) - ptTable.x)*zoomDelta;
+                newViewY = ptTable.y + (Number(tableView[1]) - ptTable.y)*zoomDelta;
+            }else{
+                newViweW = Number(tableView[2])/zoomDelta;
+                newViewH = Number(tableView[3])/zoomDelta;
+
+                newViewX = ptTable.x + (Number(tableView[0]) - ptTable.x)/zoomDelta;
+                newViewY = ptTable.y + (Number(tableView[1]) - ptTable.y)/zoomDelta;
+            }
+
+            if(newViewX < 0){
+                newViewX = 0;
+            }else if(newViewX + newViweW > tableW){
+                newViewX = tableW - newViweW;
+            }
+
+            if(newViewY < 0){
+                newViewY = 0;
+            }else if(newViewY + newViewH > tableH){
+                newViewY = tableH - newViewH;
+            }
+            
+            tableView[0] = newViewX.toString();
+            tableView[1] = newViewY.toString();
+            tableView[2] = newViweW.toString();
+            tableView[3] = newViewH.toString();
+            table.setAttribute("viewBox", tableView.join(" "));
+        }else{
+            throw Error("Could not get vt table element");
+        }      
+    }
+    /**
+     * Mouse down Event for pan
+     * 
+     * @param  {HTMLElementEvent<HTMLElement>} event
+     */
+    panMouseDown(event: HTMLElementEvent<HTMLElement>){
+        event.preventDefault();
+        panFlg = true;
+
+        let tempTarget = event.target;
+        while(!tempTarget.classList.contains(classVtTable)){
+            tempTarget = tempTarget.parentElement as HTMLElement;
+        }
+        this.panTarget = tempTarget as any as SVGSVGElement;
+        this.panViewBox = (this.panTarget.getAttribute("viewBox") as string).split(" ").map(s => {return Number(s)});
+        this.panTargetW = Number(this.panTarget.getAttribute("width"));
+        this.panTargetH = Number(this.panTarget.getAttribute("height"));
+
+        let pt = this.panTarget.createSVGPoint();
+        pt.x = event.x;
+        pt.y = event.y;
+
+        this.panStartPt = pt.matrixTransform((this.panTarget.getScreenCTM() as DOMMatrix).inverse());
+    }
+    panMouseMove(event: HTMLElementEvent<HTMLElement>){
+        if(panFlg){
+            let pt = this.panTarget.createSVGPoint();
+            pt.x = event.x;
+            pt.y = event.y;
+
+            let newPt = pt.matrixTransform((this.panTarget.getScreenCTM() as DOMMatrix).inverse());
+            let dx = newPt.x - this.panStartPt.x;
+            let dy = newPt.y - this.panStartPt.y;
+            this.panViewBox = [this.panViewBox[0] - dx, this.panViewBox[1] - dy, this.panViewBox[2], this.panViewBox[3]];
+
+            if(this.panViewBox[0] < 0){
+                this.panViewBox[0] = 0;
+            }else if(this.panViewBox[0] + this.panViewBox[2] > this.panTargetW){
+                this.panViewBox[0] = this.panTargetW - this.panViewBox[2];
+            }
+
+            if(this.panViewBox[1] < 0){
+                this.panViewBox[1] = 0;
+            }else if(this.panViewBox[1] + this.panViewBox[3] > this.panTargetH){
+                this.panViewBox[1] = this.panTargetH - this.panViewBox[3];
+            }
+
+            this.panTarget.setAttribute("viewBox", this.panViewBox.join(" "));
+        }
+    }
+    /**
      * Create svg element in target element
      * 
      * @param  {string} id target element
@@ -621,11 +770,16 @@ class VectorTable{
         svg.setAttribute("_vt-asp", asp.toString());
         svg.setAttribute("_vt-w", svgSize.w.toString());
         svg.setAttribute("_vt-h", svgSize.h.toString());
-        svg.classList.add(this.classVtTable);
+        svg.classList.add(classVtTable);
 
         // Append svg to elem
         element.appendChild(svg);
 
+        //Add Zoom and Pan Event
+        element.addEventListener('wheel', this.zoomByWheel as EventListenerOrEventListenerObject);
+        element.addEventListener('mousedown', this.panMouseDown as EventListenerOrEventListenerObject);
+        element.addEventListener('mousemove', this.panMouseMove as EventListenerOrEventListenerObject);
+        
         return [svg, asp];
     }
 }
