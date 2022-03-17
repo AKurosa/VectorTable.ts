@@ -58,6 +58,37 @@ function mouseUp(event: HTMLElementEvent<HTMLElement>){
 }
 document.addEventListener('mouseup', mouseUp as EventListenerOrEventListenerObject);
 
+//For unknown reasons,
+//event function for svg element have to code out of class.
+/**
+ * Contextmenu mouseover event.
+ * change color to dark.
+ * 
+ * @param  {HTMLElementEvent<HTMLElement>} event
+ */
+function contextMouseOver(event: HTMLElementEvent<HTMLElement>){
+    console.log("over");
+    event.target.setAttribute("fill-opacity", "10%");
+}
+/**
+ * Contextmenu mouseleave event.
+ * change color to default.
+ * 
+ * @param  {HTMLElementEvent<HTMLElement>} event
+ */
+function contextMouseLeave(event: HTMLElementEvent<HTMLElement>){
+    console.log("leave");
+    event.target.setAttribute("fill-opacity", "0%");
+}
+/**
+ * Contextmenu mousedown event. Save target table as PNG.
+ * 
+ * @param  {HTMLElementEvent<HTMLElement>} event
+ */
+function saveAsPng(event: HTMLElementEvent<HTMLElement>){
+    console.log("down");
+}
+
 /** Class Drow vector table */
 class VectorTable{
     private panStartPt: DOMPoint;
@@ -760,6 +791,7 @@ class VectorTable{
             this.panTarget.setAttribute("viewBox", this.panViewBox.join(" "));
         }
     }
+    
     /**
      * Contextmenu Event
      * 
@@ -787,11 +819,11 @@ class VectorTable{
         div.classList.add(classVtContext);
         div.classList.add(classVtContextBase);
 
-        let contextSvg = document.createElementNS(theXmlns, "svg") as SVGElement;
+        let contextSvg = document.createElementNS(theXmlns, "svg");
         contextSvg.setAttribute("width", "100%");
         contextSvg.setAttribute("height","100%");
 
-        let containerShadow = document.createElementNS(theXmlns, "rect") as SVGAElement;
+        let containerShadow = document.createElementNS(theXmlns, "rect");
         containerShadow.setAttribute("x", (event.pageX + 3).toString());
         containerShadow.setAttribute("y", (event.pageY + 3).toString());
         containerShadow.setAttribute("height", (contextmenuNum * contextFontSize).toString());
@@ -800,7 +832,7 @@ class VectorTable{
         containerShadow.setAttribute("fill-opacity", "30%");
         contextSvg.appendChild(containerShadow);
 
-        let container = document.createElementNS(theXmlns, "rect") as SVGElement;
+        let container = document.createElementNS(theXmlns, "rect");
         container.setAttribute("x", event.pageX.toString());
         container.setAttribute("y", event.pageY.toString());
         container.setAttribute("height", (contextmenuNum * contextFontSize).toString());
@@ -826,9 +858,9 @@ class VectorTable{
         menuBoxSave.setAttribute("height", contextFontSize.toString());
         menuBoxSave.setAttribute("fill", "black");
         menuBoxSave.setAttribute("fill-opacity", "0%");
-        //menuBoxSave.addEventListener("mouseover", _vtContextMouseOver);
-        //menuBoxSave.addEventListener("mouseleave", _vtContextMouseLeave);
-        //menuBoxAave.addEventListener("mousedown", _vtSaveAsPng);
+        menuBoxSave.addEventListener('mouseover', contextMouseOver as EventListenerOrEventListenerObject);
+        menuBoxSave.addEventListener('mouseleave', contextMouseLeave as EventListenerOrEventListenerObject);
+        menuBoxSave.addEventListener("mousedown", saveAsPng as EventListenerOrEventListenerObject);
         contextSvg.appendChild(menuBoxSave);
 
         div.appendChild(contextSvg);
@@ -868,7 +900,7 @@ class VectorTable{
         element.addEventListener('wheel', this.zoomByWheel as EventListenerOrEventListenerObject);
         element.addEventListener('mousedown', this.panMouseDown as EventListenerOrEventListenerObject);
         element.addEventListener('mousemove', this.panMouseMove as EventListenerOrEventListenerObject);
-        element.addEventListener("contextmenu", this.addContextmenu as EventListenerOrEventListenerObject);
+        element.addEventListener('contextmenu', this.addContextmenu as EventListenerOrEventListenerObject);
 
         return [svg, asp];
     }

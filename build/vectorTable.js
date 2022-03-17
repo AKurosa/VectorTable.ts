@@ -30,6 +30,29 @@ function mouseUp(event) {
     panFlg = false;
 }
 document.addEventListener('mouseup', mouseUp);
+/**
+ * Contextmenu mouseover event.
+ * change color to dark.
+ *
+ * @param  {HTMLElementEvent<HTMLElement>} event
+ */
+function contextMouseOver(event) {
+    console.log("over");
+    event.target.setAttribute("fill-opacity", "10%");
+}
+/**
+ * Contextmenu mouseleave event.
+ * change color to default.
+ *
+ * @param  {HTMLElementEvent<HTMLElement>} event
+ */
+function contextMouseLeave(event) {
+    console.log("leave");
+    event.target.setAttribute("fill-opacity", "0%");
+}
+function saveAsPng(event) {
+    console.log("down");
+}
 /** Class Drow vector table */
 class VectorTable {
     constructor() {
@@ -794,9 +817,9 @@ class VectorTable {
         menuBoxSave.setAttribute("height", contextFontSize.toString());
         menuBoxSave.setAttribute("fill", "black");
         menuBoxSave.setAttribute("fill-opacity", "0%");
-        //menuBoxSave.addEventListener("mouseover", _vtContextMouseOver);
-        //menuBoxSave.addEventListener("mouseleave", _vtContextMouseLeave);
-        //menuBoxAave.addEventListener("mousedown", _vtSaveAsPng);
+        menuBoxSave.addEventListener('mouseover', contextMouseOver);
+        menuBoxSave.addEventListener('mouseleave', contextMouseLeave);
+        menuBoxSave.addEventListener("mousedown", saveAsPng);
         contextSvg.appendChild(menuBoxSave);
         div.appendChild(contextSvg);
         document.body.appendChild(div);
@@ -830,7 +853,7 @@ class VectorTable {
         element.addEventListener('wheel', this.zoomByWheel);
         element.addEventListener('mousedown', this.panMouseDown);
         element.addEventListener('mousemove', this.panMouseMove);
-        element.addEventListener("contextmenu", this.addContextmenu);
+        element.addEventListener('contextmenu', this.addContextmenu);
         return [svg, asp];
     }
 }
