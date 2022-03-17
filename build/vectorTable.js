@@ -19,6 +19,7 @@ class SvgSize {
 class VectorTable {
     constructor() {
         this.theXmlns = "http://www.w3.org/2000/svg";
+        this.classVtTable = "_vtTable";
     }
     /**
      * Check exist target element.
@@ -606,6 +607,33 @@ class VectorTable {
         });
         return svgSize;
     }
+    /**
+     * Create svg element in target element
+     *
+     * @param  {string} id target element
+     * @param  {SvgSize} svgSize calculated table size
+     * @returns {[HTMLElement, number]} svg element and aspect rasio.
+     */
+    createAndAppendSVG(id, svgSize) {
+        let element = document.getElementById(id);
+        // Get element's width and height
+        const elemWidth = element.getBoundingClientRect().width;
+        const elemHeight = element.getBoundingClientRect().height;
+        const viewBoxText = "0 0 " + elemWidth + " " + elemHeight;
+        let asp = Math.min(elemWidth / svgSize.w, elemHeight / svgSize.h);
+        //Create SVG
+        let svg = document.createElementNS(this.theXmlns, "svg");
+        svg.setAttribute("width", elemWidth.toString());
+        svg.setAttribute("height", elemHeight.toString());
+        svg.setAttribute("viewBox", viewBoxText);
+        svg.setAttribute("_vt-asp", asp.toString());
+        svg.setAttribute("_vt-w", svgSize.w.toString());
+        svg.setAttribute("_vt-h", svgSize.h.toString());
+        svg.classList.add(this.classVtTable);
+        // Append svg to elem
+        element.appendChild(svg);
+        return [svg, asp];
+    }
 }
 /**
  * Drow Table using SVG.
@@ -627,7 +655,8 @@ function addVectorTable(id, setting, head, body) {
         [maxColWidths, maxRowHeights] = vectorTable.getMaxWidthAndHeight(cellMatrix);
         vectorTable.setCharPos(setting, cellMatrix, maxColWidths, maxRowHeights, divideHeader.length);
         let svgSize = vectorTable.calSvgSize(setting, maxColWidths, maxRowHeights);
-        console.log(svgSize);
+        let svg, asp;
+        [svg, asp] = vectorTable.createAndAppendSVG(id, svgSize);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');
