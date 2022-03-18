@@ -1059,6 +1059,122 @@ class VectorTable{
             }
         }
     }
+    /**
+     * Add frame line on table
+     * 
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {number} asp
+     * @param  {SvgSize} svgSize
+     */
+    createAndAppendFrame(svg: HTMLElement, setting: SettingVectorTable, cellDataMatrix: CellSize[][], asp: number, svgSize: SvgSize){
+        //row dir line
+        if(setting.row_dir_line){
+            let lineU = document.createElementNS(theXmlns, "line");
+            lineU.setAttribute("x1", "0");
+            lineU.setAttribute("x2", (svgSize.w * asp).toString());
+            lineU.setAttribute("y1", (setting.stroke_width/2 * asp).toString());
+            lineU.setAttribute("y2", (setting.stroke_width/2 * asp).toString());
+            lineU.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+            lineU.setAttribute("stroke", setting.stroke);
+            svg.appendChild(lineU);
+
+            for(let i=0; i<cellDataMatrix.length; i++){
+                let y = (cellDataMatrix[i][0].y + setting.text_margin_bottom - setting.stroke_width/2)*asp;
+                if(cellDataMatrix[i][0].row){
+                    let line = document.createElementNS(theXmlns, "line");
+                    line.setAttribute("x1", "0");
+                    line.setAttribute("x2", ((cellDataMatrix[i][1].x - setting.text_margin_left) * asp).toString());
+                    line.setAttribute("y1", y.toString());
+                    line.setAttribute("y2", y.toString());
+                    line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                    line.setAttribute("stroke", setting.stroke);
+                    svg.appendChild(line);
+                }
+                for(let j=1; j<cellDataMatrix[i].length-1; j++){
+                    if(cellDataMatrix[i][j].row){
+                        let line = document.createElementNS(theXmlns, "line");
+                        line.setAttribute("x1", ((cellDataMatrix[i][j].x - setting.text_margin_left) * asp).toString());
+                        line.setAttribute("x2", ((cellDataMatrix[i][j+1].x - setting.text_margin_left) * asp).toString());
+                        line.setAttribute("y1", y.toString());
+                        line.setAttribute("y2", y.toString());
+                        line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                        line.setAttribute("stroke", setting.stroke);
+                        svg.appendChild(line);
+                    }
+                }
+                let last = cellDataMatrix[i].length - 1;
+                if(cellDataMatrix[i][last].row){
+                    let line = document.createElementNS(theXmlns, "line");
+                    line.setAttribute("x1", ((cellDataMatrix[i][last].x - setting.text_margin_left) * asp).toString());
+                    line.setAttribute("x2", (svgSize.w * asp).toString());
+                    line.setAttribute("y1", y.toString());
+                    line.setAttribute("y2", y.toString());
+                    line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                    line.setAttribute("stroke", setting.stroke);
+                    svg.appendChild(line);
+                }
+            }
+        }
+
+        //col dir line
+        if(setting.col_dir_line){
+            let line_l = document.createElementNS(theXmlns, "line");
+            line_l.setAttribute("x1", (setting.stroke_width/2 * asp).toString());
+            line_l.setAttribute("x2", (setting.stroke_width/2 * asp).toString());
+            line_l.setAttribute("y1", "0");
+            line_l.setAttribute("y2", (svgSize.h * asp).toString());
+            line_l.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+            line_l.setAttribute("stroke", setting.stroke);
+            svg.appendChild(line_l);
+
+            let line_r = document.createElementNS(theXmlns, "line");
+            line_r.setAttribute("x1", ((svgSize.w - setting.stroke_width/2) * asp).toString());
+            line_r.setAttribute("x2", ((svgSize.w - setting.stroke_width/2) * asp).toString());
+            line_r.setAttribute("y1", "0");
+            line_r.setAttribute("y2", (svgSize.h * asp).toString());
+            line_r.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+            line_r.setAttribute("stroke", setting.stroke);
+            svg.appendChild(line_r);
+
+            for(let i=0; i<cellDataMatrix.length; i++){
+                for(let j=0; j<cellDataMatrix[i].length-1; j++){
+                    let x = (cellDataMatrix[i][j+1].x - setting.text_margin_left - setting.stroke_width/2)*asp;
+                    if(cellDataMatrix[i][j].col){
+                        if(i == 0){
+                            let line = document.createElementNS(theXmlns, "line");
+                            line.setAttribute("x1", x.toString());
+                            line.setAttribute("x2", x.toString());
+                            line.setAttribute("y1", "0");
+                            line.setAttribute("y2", ((cellDataMatrix[i][j].y + setting.text_margin_bottom) * asp).toString());
+                            line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                            line.setAttribute("stroke", setting.stroke);
+                            svg.appendChild(line);
+                        }else if(i == cellDataMatrix.length-1){
+                            let line = document.createElementNS(theXmlns, "line");
+                            line.setAttribute("x1", x.toString());
+                            line.setAttribute("x2", x.toString());
+                            line.setAttribute("y1", ((cellDataMatrix[i-1][j].y + setting.text_margin_bottom) * asp).toString());
+                            line.setAttribute("y2", (svgSize.h * asp).toString());
+                            line.setAttribute("stroke-width", (setting.stroke_width*asp).toString());
+                            line.setAttribute("stroke", setting.stroke);
+                            svg.appendChild(line);
+                        }else{
+                            let line = document.createElementNS(theXmlns, "line");
+                            line.setAttribute("x1", x.toString());
+                            line.setAttribute("x2", x.toString());
+                            line.setAttribute("y1", ((cellDataMatrix[i-1][j].y + setting.text_margin_bottom) * asp).toString());
+                            line.setAttribute("y2", ((cellDataMatrix[i][j].y + setting.text_margin_bottom) * asp).toString());
+                            line.setAttribute("stroke-width", (setting.stroke_width*asp).toString());
+                            line.setAttribute("stroke", setting.stroke);
+                            svg.appendChild(line);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 /**
  * Drow Table using SVG.
@@ -1086,6 +1202,7 @@ function addVectorTable(id: string, setting: SettingVectorTable, head: any, body
         vectorTable.createAndAppendStripes(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
         vectorTable.createAndAppendHeaderBackground(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
         vectorTable.putContents(svg, setting, divideHeader, body, cellMatrix, asp, maxRowHeights);
+        vectorTable.createAndAppendFrame(svg, setting, cellMatrix, asp, svgSize);
     }catch(error){
         throw new Error(error + ' [vectorTable]');
     }
