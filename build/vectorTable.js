@@ -26,6 +26,7 @@ const contextFontSize = 15;
 const contextmenuWidth = 100;
 const textOffset = 0.2;
 let contextmenuTarget;
+let globalElements = new Array();
 // Reset mousemove event by mouseup on document
 function mouseUp(event) {
     panFlg = false;
@@ -881,11 +882,13 @@ class VectorTable {
         svg.classList.add(classVtTable);
         // Append svg to elem
         element.appendChild(svg);
-        //Add Zoom and Pan Event
+        // Add Zoom and Pan Event
         element.addEventListener('wheel', this.zoomByWheel);
         element.addEventListener('mousedown', this.panMouseDown);
         element.addEventListener('mousemove', this.panMouseMove);
         element.addEventListener('contextmenu', this.addContextmenu);
+        // Push to Global element array
+        globalElements.push(element);
         return [svg, asp];
     }
 }
