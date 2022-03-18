@@ -51,6 +51,7 @@ const contextmenuNum: number = 1;
 const contextFontSize: number = 15;
 const contextmenuWidth: number = 100;
 const textOffset: number = 0.2;
+let contextmenuTarget: SVGSVGElement;
 
 // Reset mousemove event by mouseup on document
 function mouseUp(event: HTMLElementEvent<HTMLElement>){
@@ -67,7 +68,6 @@ document.addEventListener('mouseup', mouseUp as EventListenerOrEventListenerObje
  * @param  {HTMLElementEvent<HTMLElement>} event
  */
 function contextMouseOver(event: HTMLElementEvent<HTMLElement>){
-    console.log("over");
     event.target.setAttribute("fill-opacity", "10%");
 }
 /**
@@ -77,7 +77,6 @@ function contextMouseOver(event: HTMLElementEvent<HTMLElement>){
  * @param  {HTMLElementEvent<HTMLElement>} event
  */
 function contextMouseLeave(event: HTMLElementEvent<HTMLElement>){
-    console.log("leave");
     event.target.setAttribute("fill-opacity", "0%");
 }
 /**
@@ -86,7 +85,22 @@ function contextMouseLeave(event: HTMLElementEvent<HTMLElement>){
  * @param  {HTMLElementEvent<HTMLElement>} event
  */
 function saveAsPng(event: HTMLElementEvent<HTMLElement>){
-    console.log("down");
+    let canvas = document.createElement("canvas") as HTMLCanvasElement;
+    let svgData = new XMLSerializer().serializeToString(contextmenuTarget);
+    canvas.width = contextmenuTarget.width.baseVal.value;
+    canvas.height = contextmenuTarget.height.baseVal.value;
+    let ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    let image = new Image;
+
+    image.onload = () =>{
+        ctx.drawImage(image, 0, 0);
+        let a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.setAttribute("download", "image.png");
+        a.dispatchEvent(new MouseEvent("click"));
+    };
+
+    image.src = 'data:image/svg+xml;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(svgData)));
 }
 
 /** Class Drow vector table */
@@ -96,7 +110,6 @@ class VectorTable{
     private panViewBox: Array<number>;
     private panTargetW: number;
     private panTargetH: number;
-    private contextmenuTarget: HTMLElement;
 
     constructor(){
         this.panTarget = document.createElementNS(theXmlns, "svg") as SVGSVGElement;
@@ -104,7 +117,6 @@ class VectorTable{
         this.panViewBox = new Array<number>(4);
         this.panTargetW = 0.0;
         this.panTargetH = 0.0;
-        this.contextmenuTarget = document.createElement("div") as HTMLElement;
     }
 
     /**
@@ -805,10 +817,12 @@ class VectorTable{
             element.remove();
         });
 
-        this.contextmenuTarget = event.target;
-        while(!this.contextmenuTarget.classList.contains(classVtTable)){
-            this.contextmenuTarget = this.contextmenuTarget.parentElement as HTMLElement;
+        let temp = event.target;
+        while(!temp.classList.contains(classVtTable)){
+            temp = temp.parentElement as HTMLElement;
         }
+
+        contextmenuTarget = temp as any as SVGSVGElement;
 
         let ww = window.innerWidth;
         let wh = window.innerHeight;

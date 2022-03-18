@@ -25,11 +25,14 @@ const contextmenuNum = 1;
 const contextFontSize = 15;
 const contextmenuWidth = 100;
 const textOffset = 0.2;
+let contextmenuTarget;
 // Reset mousemove event by mouseup on document
 function mouseUp(event) {
     panFlg = false;
 }
 document.addEventListener('mouseup', mouseUp);
+//For unknown reasons,
+//event function for svg element have to code out of class.
 /**
  * Contextmenu mouseover event.
  * change color to dark.
@@ -37,7 +40,6 @@ document.addEventListener('mouseup', mouseUp);
  * @param  {HTMLElementEvent<HTMLElement>} event
  */
 function contextMouseOver(event) {
-    console.log("over");
     event.target.setAttribute("fill-opacity", "10%");
 }
 /**
@@ -47,11 +49,28 @@ function contextMouseOver(event) {
  * @param  {HTMLElementEvent<HTMLElement>} event
  */
 function contextMouseLeave(event) {
-    console.log("leave");
     event.target.setAttribute("fill-opacity", "0%");
 }
+/**
+ * Contextmenu mousedown event. Save target table as PNG.
+ *
+ * @param  {HTMLElementEvent<HTMLElement>} event
+ */
 function saveAsPng(event) {
-    console.log("down");
+    let canvas = document.createElement("canvas");
+    let svgData = new XMLSerializer().serializeToString(contextmenuTarget);
+    canvas.width = contextmenuTarget.width.baseVal.value;
+    canvas.height = contextmenuTarget.height.baseVal.value;
+    let ctx = canvas.getContext('2d');
+    let image = new Image;
+    image.onload = () => {
+        ctx.drawImage(image, 0, 0);
+        let a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.setAttribute("download", "image.png");
+        a.dispatchEvent(new MouseEvent("click"));
+    };
+    image.src = 'data:image/svg+xml;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(svgData)));
 }
 /** Class Drow vector table */
 class VectorTable {
@@ -61,7 +80,6 @@ class VectorTable {
         this.panViewBox = new Array(4);
         this.panTargetW = 0.0;
         this.panTargetH = 0.0;
-        this.contextmenuTarget = document.createElement("div");
     }
     /**
      * Check exist target element.
@@ -771,10 +789,11 @@ class VectorTable {
         Array.from(contexts).forEach(element => {
             element.remove();
         });
-        this.contextmenuTarget = event.target;
-        while (!this.contextmenuTarget.classList.contains(classVtTable)) {
-            this.contextmenuTarget = this.contextmenuTarget.parentElement;
+        let temp = event.target;
+        while (!temp.classList.contains(classVtTable)) {
+            temp = temp.parentElement;
         }
+        contextmenuTarget = temp;
         let ww = window.innerWidth;
         let wh = window.innerHeight;
         let style = "position: absolute; top: 0; left: 0; width: " + ww + "px; height: " + wh + "px;";
