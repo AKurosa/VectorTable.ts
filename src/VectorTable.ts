@@ -978,6 +978,36 @@ class VectorTable{
             }
         }
     }
+    /**
+     * Add header background color.
+     * 
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {SvgSize} svgSize
+     * @param  {number} asp
+     * @param  {number} numHeaderRow
+     */
+    createAndAppendHeaderBackground(svg: HTMLElement, setting: SettingVectorTable, cellDataMatrix: CellSize[][], svgSize: SvgSize, asp: number, numHeaderRow: number){
+        if(setting.header_row){
+            let backRow = document.createElementNS(theXmlns, "rect");
+            backRow.setAttribute("x", "0");
+            backRow.setAttribute("y", "0");
+            backRow.setAttribute("width", (svgSize.w * asp).toString());
+            backRow.setAttribute("height", ((cellDataMatrix[numHeaderRow-1][0].y + setting.text_margin_bottom - setting.stroke_width)*asp).toString());
+            backRow.setAttribute("fill", setting.header_background_color);
+            svg.appendChild(backRow);
+        }
+        if(setting.header_col){
+            let backCol = document.createElementNS(theXmlns, "rect");
+            backCol.setAttribute("x", "0");
+            backCol.setAttribute("y", "0");
+            backCol.setAttribute("width", ((cellDataMatrix[0][setting.header_col_pos].x - setting.text_margin_left)*asp).toString());
+            backCol.setAttribute("height", (svgSize.h * asp).toString());
+            backCol.setAttribute("fill", setting.header_background_color);
+            svg.appendChild(backCol);
+        }
+    }
 }
 /**
  * Drow Table using SVG.
@@ -1003,6 +1033,7 @@ function addVectorTable(id: string, setting: SettingVectorTable, head: any, body
         [svg, asp] = vectorTable.createAndAppendSVG(id, svgSize);
         vectorTable.createAndAppendBackground(svg, setting, svgSize, asp);
         vectorTable.createAndAppendStripes(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
+        vectorTable.createAndAppendHeaderBackground(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
     }catch(error){
         throw new Error(error + ' [vectorTable]');
     }

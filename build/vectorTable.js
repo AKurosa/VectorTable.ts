@@ -908,6 +908,16 @@ class VectorTable {
         background.setAttribute("fill", setting.background_color);
         svg.appendChild(background);
     }
+    /**
+     * Add Stripes of background.
+     *
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {SvgSize} svgSize
+     * @param  {number} asp
+     * @param  {number} numHeaderRow
+     */
     createAndAppendStripes(svg, setting, cellDataMatrix, svgSize, asp, numHeaderRow) {
         if ("shima_shima" in setting) {
             for (let i = numHeaderRow; i < cellDataMatrix.length; i++) {
@@ -921,6 +931,36 @@ class VectorTable {
                     svg.appendChild(stripe);
                 }
             }
+        }
+    }
+    /**
+     * Add header background color.
+     *
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {SvgSize} svgSize
+     * @param  {number} asp
+     * @param  {number} numHeaderRow
+     */
+    createAndAppendHeaderBackground(svg, setting, cellDataMatrix, svgSize, asp, numHeaderRow) {
+        if (setting.header_row) {
+            let backRow = document.createElementNS(theXmlns, "rect");
+            backRow.setAttribute("x", "0");
+            backRow.setAttribute("y", "0");
+            backRow.setAttribute("width", (svgSize.w * asp).toString());
+            backRow.setAttribute("height", ((cellDataMatrix[numHeaderRow - 1][0].y + setting.text_margin_bottom - setting.stroke_width) * asp).toString());
+            backRow.setAttribute("fill", setting.header_background_color);
+            svg.appendChild(backRow);
+        }
+        if (setting.header_col) {
+            let backCol = document.createElementNS(theXmlns, "rect");
+            backCol.setAttribute("x", "0");
+            backCol.setAttribute("y", "0");
+            backCol.setAttribute("width", ((cellDataMatrix[0][setting.header_col_pos].x - setting.text_margin_left) * asp).toString());
+            backCol.setAttribute("height", (svgSize.h * asp).toString());
+            backCol.setAttribute("fill", setting.header_background_color);
+            svg.appendChild(backCol);
         }
     }
 }
@@ -948,6 +988,7 @@ function addVectorTable(id, setting, head, body) {
         [svg, asp] = vectorTable.createAndAppendSVG(id, svgSize);
         vectorTable.createAndAppendBackground(svg, setting, svgSize, asp);
         vectorTable.createAndAppendStripes(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
+        vectorTable.createAndAppendHeaderBackground(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');
