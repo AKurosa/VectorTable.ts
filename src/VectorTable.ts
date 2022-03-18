@@ -51,6 +51,8 @@ const contextmenuNum: number = 1;
 const contextFontSize: number = 15;
 const contextmenuWidth: number = 100;
 const textOffset: number = 0.2;
+let contextmenuTarget: SVGSVGElement;
+let globalElements = new Array<HTMLElement>();
 
 // Reset mousemove event by mouseup on document
 function mouseUp(event: HTMLElementEvent<HTMLElement>){
@@ -67,7 +69,6 @@ document.addEventListener('mouseup', mouseUp as EventListenerOrEventListenerObje
  * @param  {HTMLElementEvent<HTMLElement>} event
  */
 function contextMouseOver(event: HTMLElementEvent<HTMLElement>){
-    console.log("over");
     event.target.setAttribute("fill-opacity", "10%");
 }
 /**
@@ -77,7 +78,6 @@ function contextMouseOver(event: HTMLElementEvent<HTMLElement>){
  * @param  {HTMLElementEvent<HTMLElement>} event
  */
 function contextMouseLeave(event: HTMLElementEvent<HTMLElement>){
-    console.log("leave");
     event.target.setAttribute("fill-opacity", "0%");
 }
 /**
@@ -86,7 +86,35 @@ function contextMouseLeave(event: HTMLElementEvent<HTMLElement>){
  * @param  {HTMLElementEvent<HTMLElement>} event
  */
 function saveAsPng(event: HTMLElementEvent<HTMLElement>){
-    console.log("down");
+    let canvas = document.createElement("canvas") as HTMLCanvasElement;
+    let svgData = new XMLSerializer().serializeToString(contextmenuTarget);
+    canvas.width = contextmenuTarget.width.baseVal.value;
+    canvas.height = contextmenuTarget.height.baseVal.value;
+    let ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    let image = new Image;
+
+    image.onload = () =>{
+        ctx.drawImage(image, 0, 0);
+        let a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.setAttribute("download", "image.png");
+        a.dispatchEvent(new MouseEvent("click"));
+    };
+
+    image.src = 'data:image/svg+xml;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+}
+/**
+ * Reset contextmenu
+ * 
+ * @param  {HTMLElementEvent<HTMLElement>} event
+ */
+function contextmenuDown(event: HTMLElementEvent<HTMLElement>){
+    event.preventDefault();
+
+    let contexts = document.getElementsByClassName(classVtContext);
+    Array.from(contexts).forEach(content =>{
+        content.remove();
+    });
 }
 
 /** Class Drow vector table */
@@ -96,7 +124,6 @@ class VectorTable{
     private panViewBox: Array<number>;
     private panTargetW: number;
     private panTargetH: number;
-    private contextmenuTarget: HTMLElement;
 
     constructor(){
         this.panTarget = document.createElementNS(theXmlns, "svg") as SVGSVGElement;
@@ -104,7 +131,6 @@ class VectorTable{
         this.panViewBox = new Array<number>(4);
         this.panTargetW = 0.0;
         this.panTargetH = 0.0;
-        this.contextmenuTarget = document.createElement("div") as HTMLElement;
     }
 
     /**
@@ -805,10 +831,12 @@ class VectorTable{
             element.remove();
         });
 
-        this.contextmenuTarget = event.target;
-        while(!this.contextmenuTarget.classList.contains(classVtTable)){
-            this.contextmenuTarget = this.contextmenuTarget.parentElement as HTMLElement;
+        let temp = event.target;
+        while(!temp.classList.contains(classVtTable)){
+            temp = temp.parentElement as HTMLElement;
         }
+
+        contextmenuTarget = temp as any as SVGSVGElement;
 
         let ww = window.innerWidth;
         let wh = window.innerHeight;
@@ -864,7 +892,7 @@ class VectorTable{
         contextSvg.appendChild(menuBoxSave);
 
         div.appendChild(contextSvg);
-
+        div.addEventListener("mousedown", contextmenuDown as EventListenerOrEventListenerObject);
         document.body.appendChild(div);
     }
     /**
@@ -896,13 +924,256 @@ class VectorTable{
         // Append svg to elem
         element.appendChild(svg);
 
-        //Add Zoom and Pan Event
+        // Add Zoom and Pan Event
         element.addEventListener('wheel', this.zoomByWheel as EventListenerOrEventListenerObject);
         element.addEventListener('mousedown', this.panMouseDown as EventListenerOrEventListenerObject);
         element.addEventListener('mousemove', this.panMouseMove as EventListenerOrEventListenerObject);
         element.addEventListener('contextmenu', this.addContextmenu as EventListenerOrEventListenerObject);
 
+        // Push to Global element array
+        globalElements.push(element);
+
         return [svg, asp];
+    }
+    /**
+     * Create background of vector table
+     * 
+     * @param  {HTMLElement} svg target element
+     * @param  {SettingVectorTable} setting setting of vector table 
+     * @param  {SvgSize} svgSize size of element
+     * @param  {number} asp aspect rasio
+     */
+    createAndAppendBackground(svg: HTMLElement, setting: SettingVectorTable, svgSize: SvgSize, asp: number){
+        let background = document.createElementNS(theXmlns, "rect");
+        background.setAttribute("x", "0");
+        background.setAttribute("y", "0");
+        background.setAttribute("width", (svgSize.w * asp).toString());
+        background.setAttribute("height", (svgSize.h * asp).toString());
+        background.setAttribute("fill", setting.background_color);
+
+        svg.appendChild(background);
+    }
+    /**
+     * Add Stripes of background.
+     * 
+     * @param  {HTMLElement} svg 
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {SvgSize} svgSize
+     * @param  {number} asp
+     * @param  {number} numHeaderRow
+     */
+    createAndAppendStripes(svg: HTMLElement, setting: SettingVectorTable, cellDataMatrix: CellSize[][], svgSize: SvgSize, asp: number, numHeaderRow: number){
+        if("shima_shima" in setting){
+            for(let i=numHeaderRow; i<cellDataMatrix.length; i++){
+                if((i-numHeaderRow)%2){
+                    let stripe = document.createElementNS(theXmlns, "rect");
+                    stripe.setAttribute("x", "0");
+                    stripe.setAttribute("y", ((cellDataMatrix[i-1][0].y + setting.text_margin_bottom) * asp).toString());
+                    stripe.setAttribute("width", (svgSize.w * asp).toString());
+                    stripe.setAttribute("height",((cellDataMatrix[i][0].h + setting.stroke_width/2 + setting.text_margin_bottom + setting.text_margin_top) * asp).toString());
+                    stripe.setAttribute("fill", setting.shima_shima.toString());
+                    svg.appendChild(stripe);
+                }
+            }
+        }
+    }
+    /**
+     * Add header background color.
+     * 
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {SvgSize} svgSize
+     * @param  {number} asp
+     * @param  {number} numHeaderRow
+     */
+    createAndAppendHeaderBackground(svg: HTMLElement, setting: SettingVectorTable, cellDataMatrix: CellSize[][], svgSize: SvgSize, asp: number, numHeaderRow: number){
+        if(setting.header_row){
+            let backRow = document.createElementNS(theXmlns, "rect");
+            backRow.setAttribute("x", "0");
+            backRow.setAttribute("y", "0");
+            backRow.setAttribute("width", (svgSize.w * asp).toString());
+            backRow.setAttribute("height", ((cellDataMatrix[numHeaderRow-1][0].y + setting.text_margin_bottom - setting.stroke_width)*asp).toString());
+            backRow.setAttribute("fill", setting.header_background_color);
+            svg.appendChild(backRow);
+        }
+        if(setting.header_col){
+            let backCol = document.createElementNS(theXmlns, "rect");
+            backCol.setAttribute("x", "0");
+            backCol.setAttribute("y", "0");
+            backCol.setAttribute("width", ((cellDataMatrix[0][setting.header_col_pos].x - setting.text_margin_left)*asp).toString());
+            backCol.setAttribute("height", (svgSize.h * asp).toString());
+            backCol.setAttribute("fill", setting.header_background_color);
+            svg.appendChild(backCol);
+        }
+    }
+    /**
+     * Put text on Table
+     * 
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {HeaderObject[][]} divideHeader
+     * @param  {string[][]} body
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {number} asp
+     * @param  {number[]} maxRowHeight
+     */
+    putContents(svg: HTMLElement, setting: SettingVectorTable, divideHeader: HeaderObject[][], body: string[][], cellDataMatrix: CellSize[][], asp: number, maxRowHeight: number[]){
+        // header
+        for(let i=0; i<divideHeader.length; i++){
+            for(let j=0; j<divideHeader[i].length; j++){
+                if("value" in divideHeader[i][j]){
+                    let text = document.createElementNS(theXmlns,"text");
+                    text.setAttribute("x", (cellDataMatrix[i][j].x * asp).toString());
+                    text.setAttribute("y", ((cellDataMatrix[i][j].y - maxRowHeight[i] * textOffset) * asp).toString());
+                    text.setAttribute("font-size", (setting.text_font_size * asp).toString());
+                    text.setAttribute("stroke", setting.header_font_stroke);
+                    text.setAttribute("fill", setting.header_font_stroke);
+                    text.setAttribute("stroke-width", (setting.header_font_stroke_width * asp).toString());
+                    text.textContent = divideHeader[i][j].value;
+
+                    svg.appendChild(text);
+                }
+            }
+        }
+        // body
+        for(let i=0; i<body.length; i++){
+            for(let j=0; j<body[i].length; j++){
+                let text = document.createElementNS(theXmlns,"text");
+                text.setAttribute("x", (cellDataMatrix[i+divideHeader.length][j].x * asp).toString());
+                text.setAttribute("y", ((cellDataMatrix[i+divideHeader.length][j].y - maxRowHeight[i+divideHeader.length] * textOffset) * asp).toString());
+                text.setAttribute("font-size", (setting.text_font_size * asp).toString());
+                if(j < setting.header_col_pos){
+                    text.setAttribute("stroke", setting.header_font_stroke);
+                    text.setAttribute("fill", setting.header_font_stroke);
+                    text.setAttribute("stroke-width", (setting.header_font_stroke_width * asp).toString());
+                }else{
+                    text.setAttribute("stroke", setting.text_font_stroke);
+                    text.setAttribute("fill", setting.text_font_stroke);
+                    text.setAttribute("stroke-width", (setting.text_font_stroke_width * asp).toString());
+                }
+                text.textContent = body[i][j];
+
+                svg.appendChild(text);
+            }
+        }
+    }
+    /**
+     * Add frame line on table
+     * 
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {number} asp
+     * @param  {SvgSize} svgSize
+     */
+    createAndAppendFrame(svg: HTMLElement, setting: SettingVectorTable, cellDataMatrix: CellSize[][], asp: number, svgSize: SvgSize){
+        //row dir line
+        if(setting.row_dir_line){
+            let lineU = document.createElementNS(theXmlns, "line");
+            lineU.setAttribute("x1", "0");
+            lineU.setAttribute("x2", (svgSize.w * asp).toString());
+            lineU.setAttribute("y1", (setting.stroke_width/2 * asp).toString());
+            lineU.setAttribute("y2", (setting.stroke_width/2 * asp).toString());
+            lineU.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+            lineU.setAttribute("stroke", setting.stroke);
+            svg.appendChild(lineU);
+
+            for(let i=0; i<cellDataMatrix.length; i++){
+                let y = (cellDataMatrix[i][0].y + setting.text_margin_bottom - setting.stroke_width/2)*asp;
+                if(cellDataMatrix[i][0].row){
+                    let line = document.createElementNS(theXmlns, "line");
+                    line.setAttribute("x1", "0");
+                    line.setAttribute("x2", ((cellDataMatrix[i][1].x - setting.text_margin_left) * asp).toString());
+                    line.setAttribute("y1", y.toString());
+                    line.setAttribute("y2", y.toString());
+                    line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                    line.setAttribute("stroke", setting.stroke);
+                    svg.appendChild(line);
+                }
+                for(let j=1; j<cellDataMatrix[i].length-1; j++){
+                    if(cellDataMatrix[i][j].row){
+                        let line = document.createElementNS(theXmlns, "line");
+                        line.setAttribute("x1", ((cellDataMatrix[i][j].x - setting.text_margin_left) * asp).toString());
+                        line.setAttribute("x2", ((cellDataMatrix[i][j+1].x - setting.text_margin_left) * asp).toString());
+                        line.setAttribute("y1", y.toString());
+                        line.setAttribute("y2", y.toString());
+                        line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                        line.setAttribute("stroke", setting.stroke);
+                        svg.appendChild(line);
+                    }
+                }
+                let last = cellDataMatrix[i].length - 1;
+                if(cellDataMatrix[i][last].row){
+                    let line = document.createElementNS(theXmlns, "line");
+                    line.setAttribute("x1", ((cellDataMatrix[i][last].x - setting.text_margin_left) * asp).toString());
+                    line.setAttribute("x2", (svgSize.w * asp).toString());
+                    line.setAttribute("y1", y.toString());
+                    line.setAttribute("y2", y.toString());
+                    line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                    line.setAttribute("stroke", setting.stroke);
+                    svg.appendChild(line);
+                }
+            }
+        }
+
+        //col dir line
+        if(setting.col_dir_line){
+            let line_l = document.createElementNS(theXmlns, "line");
+            line_l.setAttribute("x1", (setting.stroke_width/2 * asp).toString());
+            line_l.setAttribute("x2", (setting.stroke_width/2 * asp).toString());
+            line_l.setAttribute("y1", "0");
+            line_l.setAttribute("y2", (svgSize.h * asp).toString());
+            line_l.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+            line_l.setAttribute("stroke", setting.stroke);
+            svg.appendChild(line_l);
+
+            let line_r = document.createElementNS(theXmlns, "line");
+            line_r.setAttribute("x1", ((svgSize.w - setting.stroke_width/2) * asp).toString());
+            line_r.setAttribute("x2", ((svgSize.w - setting.stroke_width/2) * asp).toString());
+            line_r.setAttribute("y1", "0");
+            line_r.setAttribute("y2", (svgSize.h * asp).toString());
+            line_r.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+            line_r.setAttribute("stroke", setting.stroke);
+            svg.appendChild(line_r);
+
+            for(let i=0; i<cellDataMatrix.length; i++){
+                for(let j=0; j<cellDataMatrix[i].length-1; j++){
+                    let x = (cellDataMatrix[i][j+1].x - setting.text_margin_left - setting.stroke_width/2)*asp;
+                    if(cellDataMatrix[i][j].col){
+                        if(i == 0){
+                            let line = document.createElementNS(theXmlns, "line");
+                            line.setAttribute("x1", x.toString());
+                            line.setAttribute("x2", x.toString());
+                            line.setAttribute("y1", "0");
+                            line.setAttribute("y2", ((cellDataMatrix[i][j].y + setting.text_margin_bottom) * asp).toString());
+                            line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                            line.setAttribute("stroke", setting.stroke);
+                            svg.appendChild(line);
+                        }else if(i == cellDataMatrix.length-1){
+                            let line = document.createElementNS(theXmlns, "line");
+                            line.setAttribute("x1", x.toString());
+                            line.setAttribute("x2", x.toString());
+                            line.setAttribute("y1", ((cellDataMatrix[i-1][j].y + setting.text_margin_bottom) * asp).toString());
+                            line.setAttribute("y2", (svgSize.h * asp).toString());
+                            line.setAttribute("stroke-width", (setting.stroke_width*asp).toString());
+                            line.setAttribute("stroke", setting.stroke);
+                            svg.appendChild(line);
+                        }else{
+                            let line = document.createElementNS(theXmlns, "line");
+                            line.setAttribute("x1", x.toString());
+                            line.setAttribute("x2", x.toString());
+                            line.setAttribute("y1", ((cellDataMatrix[i-1][j].y + setting.text_margin_bottom) * asp).toString());
+                            line.setAttribute("y2", ((cellDataMatrix[i][j].y + setting.text_margin_bottom) * asp).toString());
+                            line.setAttribute("stroke-width", (setting.stroke_width*asp).toString());
+                            line.setAttribute("stroke", setting.stroke);
+                            svg.appendChild(line);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 /**
@@ -927,6 +1198,11 @@ function addVectorTable(id: string, setting: SettingVectorTable, head: any, body
         let svgSize = vectorTable.calSvgSize(setting, maxColWidths, maxRowHeights);
         let svg, asp;
         [svg, asp] = vectorTable.createAndAppendSVG(id, svgSize);
+        vectorTable.createAndAppendBackground(svg, setting, svgSize, asp);
+        vectorTable.createAndAppendStripes(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
+        vectorTable.createAndAppendHeaderBackground(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
+        vectorTable.putContents(svg, setting, divideHeader, body, cellMatrix, asp, maxRowHeights);
+        vectorTable.createAndAppendFrame(svg, setting, cellMatrix, asp, svgSize);
     }catch(error){
         throw new Error(error + ' [vectorTable]');
     }
