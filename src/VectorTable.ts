@@ -953,6 +953,31 @@ class VectorTable{
 
         svg.appendChild(background);
     }
+    /**
+     * Add Stripes of background.
+     * 
+     * @param  {HTMLElement} svg 
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {SvgSize} svgSize
+     * @param  {number} asp
+     * @param  {number} numHeaderRow
+     */
+    createAndAppendStripes(svg: HTMLElement, setting: SettingVectorTable, cellDataMatrix: CellSize[][], svgSize: SvgSize, asp: number, numHeaderRow: number){
+        if("shima_shima" in setting){
+            for(let i=numHeaderRow; i<cellDataMatrix.length; i++){
+                if((i-numHeaderRow)%2){
+                    let stripe = document.createElementNS(theXmlns, "rect");
+                    stripe.setAttribute("x", "0");
+                    stripe.setAttribute("y", ((cellDataMatrix[i-1][0].y + setting.text_margin_bottom) * asp).toString());
+                    stripe.setAttribute("width", (svgSize.w * asp).toString());
+                    stripe.setAttribute("height",((cellDataMatrix[i][0].h + setting.stroke_width/2 + setting.text_margin_bottom + setting.text_margin_top) * asp).toString());
+                    stripe.setAttribute("fill", setting.shima_shima.toString());
+                    svg.appendChild(stripe);
+                }
+            }
+        }
+    }
 }
 /**
  * Drow Table using SVG.
@@ -977,6 +1002,7 @@ function addVectorTable(id: string, setting: SettingVectorTable, head: any, body
         let svg, asp;
         [svg, asp] = vectorTable.createAndAppendSVG(id, svgSize);
         vectorTable.createAndAppendBackground(svg, setting, svgSize, asp);
+        vectorTable.createAndAppendStripes(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
     }catch(error){
         throw new Error(error + ' [vectorTable]');
     }
