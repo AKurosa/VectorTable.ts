@@ -891,6 +891,23 @@ class VectorTable {
         globalElements.push(element);
         return [svg, asp];
     }
+    /**
+     * Create background of vector table
+     *
+     * @param  {HTMLElement} svg target element
+     * @param  {SettingVectorTable} setting setting of vector table
+     * @param  {SvgSize} svgSize size of element
+     * @param  {number} asp aspect rasio
+     */
+    createAndAppendBackground(svg, setting, svgSize, asp) {
+        let background = document.createElementNS(theXmlns, "rect");
+        background.setAttribute("x", "0");
+        background.setAttribute("y", "0");
+        background.setAttribute("width", (svgSize.w * asp).toString());
+        background.setAttribute("height", (svgSize.h * asp).toString());
+        background.setAttribute("fill", setting.background_color);
+        svg.appendChild(background);
+    }
 }
 /**
  * Drow Table using SVG.
@@ -914,6 +931,7 @@ function addVectorTable(id, setting, head, body) {
         let svgSize = vectorTable.calSvgSize(setting, maxColWidths, maxRowHeights);
         let svg, asp;
         [svg, asp] = vectorTable.createAndAppendSVG(id, svgSize);
+        vectorTable.createAndAppendBackground(svg, setting, svgSize, asp);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');
