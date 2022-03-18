@@ -102,6 +102,19 @@ function saveAsPng(event: HTMLElementEvent<HTMLElement>){
 
     image.src = 'data:image/svg+xml;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(svgData)));
 }
+/**
+ * Reset contextmenu
+ * 
+ * @param  {HTMLElementEvent<HTMLElement>} event
+ */
+function contextmenuDown(event: HTMLElementEvent<HTMLElement>){
+    event.preventDefault();
+
+    let contexts = document.getElementsByClassName(classVtContext);
+    Array.from(contexts).forEach(content =>{
+        content.remove();
+    });
+}
 
 /** Class Drow vector table */
 class VectorTable{
@@ -878,7 +891,7 @@ class VectorTable{
         contextSvg.appendChild(menuBoxSave);
 
         div.appendChild(contextSvg);
-
+        div.addEventListener("mousedown", contextmenuDown as EventListenerOrEventListenerObject);
         document.body.appendChild(div);
     }
     /**
