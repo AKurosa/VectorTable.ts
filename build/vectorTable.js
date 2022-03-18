@@ -963,6 +963,56 @@ class VectorTable {
             svg.appendChild(backCol);
         }
     }
+    /**
+     * Put text on Table
+     *
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {HeaderObject[][]} divideHeader
+     * @param  {string[][]} body
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {number} asp
+     * @param  {number[]} maxRowHeight
+     */
+    putContents(svg, setting, divideHeader, body, cellDataMatrix, asp, maxRowHeight) {
+        // header
+        for (let i = 0; i < divideHeader.length; i++) {
+            for (let j = 0; j < divideHeader[i].length; j++) {
+                if ("value" in divideHeader[i][j]) {
+                    let text = document.createElementNS(theXmlns, "text");
+                    text.setAttribute("x", (cellDataMatrix[i][j].x * asp).toString());
+                    text.setAttribute("y", ((cellDataMatrix[i][j].y - maxRowHeight[i] * textOffset) * asp).toString());
+                    text.setAttribute("font-size", (setting.text_font_size * asp).toString());
+                    text.setAttribute("stroke", setting.header_font_stroke);
+                    text.setAttribute("fill", setting.header_font_stroke);
+                    text.setAttribute("stroke-width", (setting.header_font_stroke_width * asp).toString());
+                    text.textContent = divideHeader[i][j].value;
+                    svg.appendChild(text);
+                }
+            }
+        }
+        // body
+        for (let i = 0; i < body.length; i++) {
+            for (let j = 0; j < body[i].length; j++) {
+                let text = document.createElementNS(theXmlns, "text");
+                text.setAttribute("x", (cellDataMatrix[i + divideHeader.length][j].x * asp).toString());
+                text.setAttribute("y", ((cellDataMatrix[i + divideHeader.length][j].y - maxRowHeight[i + divideHeader.length] * textOffset) * asp).toString());
+                text.setAttribute("font-size", (setting.text_font_size * asp).toString());
+                if (j < setting.header_col_pos) {
+                    text.setAttribute("stroke", setting.header_font_stroke);
+                    text.setAttribute("fill", setting.header_font_stroke);
+                    text.setAttribute("stroke-width", (setting.header_font_stroke_width * asp).toString());
+                }
+                else {
+                    text.setAttribute("stroke", setting.text_font_stroke);
+                    text.setAttribute("fill", setting.text_font_stroke);
+                    text.setAttribute("stroke-width", (setting.text_font_stroke_width * asp).toString());
+                }
+                text.textContent = body[i][j];
+                svg.appendChild(text);
+            }
+        }
+    }
 }
 /**
  * Drow Table using SVG.
@@ -989,6 +1039,7 @@ function addVectorTable(id, setting, head, body) {
         vectorTable.createAndAppendBackground(svg, setting, svgSize, asp);
         vectorTable.createAndAppendStripes(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
         vectorTable.createAndAppendHeaderBackground(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
+        vectorTable.putContents(svg, setting, divideHeader, body, cellMatrix, asp, maxRowHeights);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');
