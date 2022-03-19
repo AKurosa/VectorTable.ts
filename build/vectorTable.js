@@ -1313,3 +1313,240 @@ function addVectorTable(id, setting, head, body) {
         throw new Error(error + ' [vectorTable]');
     }
 }
+/** Class for generate default setting */
+class VectorTableSetting {
+    constructor() {
+    }
+    ;
+    /**
+     * Generate default Setting
+     *
+     * @param  {string} settingName setting name
+     * @returns {object} default setting
+     */
+    genDefaultSetting(settingName) {
+        switch (settingName) {
+            case "vt_simple_black":
+                let vt_simple_black = {
+                    stroke_width: 1,
+                    header_row: true,
+                    header_stroke_width: 3,
+                    header_font_stroke_width: 1,
+                    outer_frame: true,
+                    outer_frame_stroke_width: 6,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                };
+                return vt_simple_black;
+            case "vt_simple_black_hc1":
+                let vt_simple_black_hc1 = {
+                    stroke_width: 1,
+                    header_row: true,
+                    header_col: true,
+                    header_stroke_width: 3,
+                    header_font_stroke_width: 1,
+                    header_col_pos: 1,
+                    outer_frame: true,
+                    outer_frame_stroke_width: 6,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                };
+                return vt_simple_black_hc1;
+            case "vt_stripes_black":
+                let vt_stripes_black = {
+                    stroke: "white",
+                    stroke_width: 1.5,
+                    background_color: "#f9f9f9",
+                    header_row: true,
+                    header_background_color: "black",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "white",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "gray",
+                };
+                return vt_stripes_black;
+            case "vt_stripes_blue":
+                let vt_stripes_blue = {
+                    stroke: "white",
+                    stroke_width: 1.5,
+                    background_color: "#fffff9",
+                    header_row: true,
+                    header_background_color: "#0000e1",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "white",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#97bdff",
+                };
+                return vt_stripes_blue;
+            case "vt_stripes_green":
+                let vt_stripes_green = {
+                    stroke: "white",
+                    stroke_width: 1.5,
+                    background_color: "#fafaff",
+                    header_row: true,
+                    header_background_color: "#339900",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "white",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#e1eec1",
+                };
+                return vt_stripes_green;
+            case "vt_stripes_orange":
+                let vt_stripes_orange = {
+                    stroke: "white",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#f15922",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "white",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#ffe0b6",
+                };
+                return vt_stripes_orange;
+            case "vt_pale_gray":
+                let vt_pale_gray = {
+                    stroke: "#000000",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#dddddd",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#000000",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#eeeeee",
+                };
+                return vt_pale_gray;
+            case "vt_pale_gray_hc1":
+                let vt_pale_gray_hc1 = {
+                    stroke: "#000000",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_col: true,
+                    header_background_color: "#dddddd",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#000000",
+                    header_col_pos: 1,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#eeeeee",
+                };
+                return vt_pale_gray_hc1;
+            case "vt_pale_blue":
+                let vt_pale_blue = {
+                    stroke: "#0c4da2",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#97cdf3",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#0c4da2",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#dbedf0",
+                };
+                return vt_pale_blue;
+            case "vt_pale_blue_hc1":
+                let vt_pale_blue_hc1 = {
+                    stroke: "#0c4da2",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_col: true,
+                    header_background_color: "#97cdf3",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#0c4da2",
+                    header_col_pos: 1,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#dbedf0",
+                };
+                return vt_pale_blue_hc1;
+            case "vt_pale_green":
+                let vt_pale_green = {
+                    stroke: "#339900",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#c9f1c2",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#339900",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#e9fec9",
+                };
+                return vt_pale_green;
+            case "vt_pale_green_hc1":
+                let vt_pale_green_hc1 = {
+                    id: "",
+                    stroke: "#339900",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_col: true,
+                    header_background_color: "#c9f1c2",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#339900",
+                    header_col_pos: 1,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#e9fec9",
+                };
+                return vt_pale_green_hc1;
+            case "vt_pale_orange":
+                let vt_pale_orange = {
+                    id: "",
+                    stroke: "#f37053",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#ffe0b6",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#f0821e",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#fff0cf",
+                };
+                return vt_pale_orange;
+            case "vt_pale_orange_hc1":
+                let vt_pale_orange_hc1 = {
+                    id: "",
+                    stroke: "#f37053",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_col: true,
+                    header_background_color: "#ffe0b6",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#f0821e",
+                    header_col_pos: 1,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#fff0cf",
+                };
+                return vt_pale_orange_hc1;
+            default:
+                throw Error("There is no setting of " + settingName);
+        }
+    }
+}
