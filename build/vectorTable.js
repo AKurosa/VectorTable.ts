@@ -85,6 +85,63 @@ function contextmenuDown(event) {
         content.remove();
     });
 }
+/**
+ * Window resize event.
+ *
+ * @param  {HTMLElementEvent<HTMLElement>} event
+ */
+function _vtResizeWindow(event) {
+    globalElements.forEach(elem => {
+        let elemWidth = elem.getBoundingClientRect().width;
+        let elemHeight = elem.getBoundingClientRect().height;
+        let viewBoxText = "0 0 " + elemWidth + " " + elemHeight;
+        let ef = elem.firstElementChild;
+        let old_asp = Number(ef.getAttribute("_vt-asp"));
+        let w = Number(ef.getAttribute("_vt-w"));
+        let h = Number(ef.getAttribute("_vt-h"));
+        let asp = Math.min(elemWidth / w, elemHeight / h);
+        ef.setAttribute("width", elemWidth.toString());
+        ef.setAttribute("height", elemHeight.toString());
+        ef.setAttribute("viewBox", viewBoxText);
+        ef.setAttribute("_vt-asp", asp.toString());
+        let rects = ef.querySelectorAll("rect");
+        Array.from(rects).forEach(rect => {
+            let old_x = Number(rect.getAttribute("x"));
+            rect.setAttribute("x", (old_x * asp / old_asp).toString());
+            let old_y = Number(rect.getAttribute("y"));
+            rect.setAttribute("y", (old_y * asp / old_asp).toString());
+            let old_w = Number(rect.getAttribute("width"));
+            rect.setAttribute("width", (old_w * asp / old_asp).toString());
+            let old_h = Number(rect.getAttribute("height"));
+            rect.setAttribute("height", (old_h * asp / old_asp).toString());
+        });
+        let lines = ef.querySelectorAll("line");
+        Array.from(lines).forEach(line => {
+            let old_x1 = Number(line.getAttribute("x1"));
+            line.setAttribute("x1", (old_x1 * asp / old_asp).toString());
+            let old_x2 = Number(line.getAttribute("x2"));
+            line.setAttribute("x2", (old_x2 * asp / old_asp).toString());
+            let old_y1 = Number(line.getAttribute("y1"));
+            line.setAttribute("y1", (old_y1 * asp / old_asp).toString());
+            let old_y2 = Number(line.getAttribute("y2"));
+            line.setAttribute("y2", (old_y2 * asp / old_asp).toString());
+            let stroke_width = Number(line.getAttribute("stroke-width"));
+            line.setAttribute("stroke-width", (stroke_width * asp / old_asp).toString());
+        });
+        let texts = ef.querySelectorAll("text");
+        Array.from(texts).forEach(text => {
+            let old_x = Number(text.getAttribute("x"));
+            text.setAttribute("x", (old_x * asp / old_asp).toString());
+            let old_y = Number(text.getAttribute("y"));
+            text.setAttribute("y", (old_y * asp / old_asp).toString());
+            let font_size = Number(text.getAttribute("font-size"));
+            text.setAttribute("font-size", (font_size * asp / old_asp).toString());
+            let stroke_width = Number(text.getAttribute("stroke-width"));
+            text.setAttribute("stroke-width", (stroke_width * asp / old_asp).toString());
+        });
+    });
+}
+window.addEventListener("resize", _vtResizeWindow);
 /** Class Drow vector table */
 class VectorTable {
     constructor() {
@@ -1033,7 +1090,15 @@ class VectorTable {
             lineU.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
             lineU.setAttribute("stroke", setting.stroke);
             svg.appendChild(lineU);
-            for (let i = 0; i < cellDataMatrix.length; i++) {
+            let lineD = document.createElementNS(theXmlns, "line");
+            lineD.setAttribute("x1", "0");
+            lineD.setAttribute("x2", (svgSize.w * asp).toString());
+            lineD.setAttribute("y1", ((svgSize.h - setting.stroke_width / 2) * asp).toString());
+            lineD.setAttribute("y2", ((svgSize.h - setting.stroke_width / 2) * asp).toString());
+            lineD.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+            lineD.setAttribute("stroke", setting.stroke);
+            svg.appendChild(lineD);
+            for (let i = 0; i < cellDataMatrix.length - 1; i++) {
                 let y = (cellDataMatrix[i][0].y + setting.text_margin_bottom - setting.stroke_width / 2) * asp;
                 if (cellDataMatrix[i][0].row) {
                     let line = document.createElementNS(theXmlns, "line");
@@ -1127,6 +1192,92 @@ class VectorTable {
             }
         }
     }
+    /**
+     * Add frame line for header on table.
+     *
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {number} asp
+     * @param  {SvgSize} svgSize
+     * @param  {number} numHeaderRow
+     */
+    createAndAppendHeaderFrame(svg, setting, cellDataMatrix, asp, svgSize, numHeaderRow) {
+        // row
+        if (setting.row_dir_line) {
+            if (setting.header_row) {
+                let line = document.createElementNS(theXmlns, "line");
+                line.setAttribute("x1", "0");
+                line.setAttribute("x2", (svgSize.w * asp).toString());
+                line.setAttribute("y1", ((cellDataMatrix[numHeaderRow - 1][0].y + setting.text_margin_bottom + setting.stroke_width / 2) * asp).toString());
+                line.setAttribute("y2", ((cellDataMatrix[numHeaderRow - 1][0].y + setting.text_margin_bottom + setting.stroke_width / 2) * asp).toString());
+                line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                line.setAttribute("stroke", setting.stroke);
+                svg.appendChild(line);
+            }
+        }
+        //col
+        if (setting.col_dir_line) {
+            if (setting.header_col) {
+                let line = document.createElementNS(theXmlns, "line");
+                line.setAttribute("x1", ((cellDataMatrix[0][setting.header_col_pos].x - setting.text_margin_left - setting.stroke_width / 2) * asp).toString());
+                line.setAttribute("x2", ((cellDataMatrix[0][setting.header_col_pos].x - setting.text_margin_left - setting.stroke_width / 2) * asp).toString());
+                line.setAttribute("y1", "0");
+                line.setAttribute("y2", (svgSize.h * asp).toString());
+                line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                line.setAttribute("stroke", setting.stroke);
+                svg.appendChild(line);
+            }
+        }
+    }
+    /**
+     * Add outer frame line on table
+     *
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {SvgSize} svgSize
+     * @param  {number} asp
+     */
+    createAndAppendOuterFrame(svg, setting, svgSize, asp) {
+        if (setting.outer_frame) {
+            if (setting.row_dir_line) {
+                let lineT = document.createElementNS(theXmlns, "line");
+                lineT.setAttribute("x1", "0");
+                lineT.setAttribute("x2", (svgSize.w * asp).toString());
+                lineT.setAttribute("y1", (setting.outer_frame_stroke_width / 2 * asp).toString());
+                lineT.setAttribute("y2", (setting.outer_frame_stroke_width / 2 * asp).toString());
+                lineT.setAttribute("stroke-width", (setting.outer_frame_stroke_width * asp).toString());
+                lineT.setAttribute("stroke", setting.outer_frame_stroke);
+                svg.appendChild(lineT);
+                let lineB = document.createElementNS(theXmlns, "line");
+                lineB.setAttribute("x1", "0");
+                lineB.setAttribute("x2", (svgSize.w * asp).toString());
+                lineB.setAttribute("y1", ((svgSize.h - setting.outer_frame_stroke_width / 2) * asp).toString());
+                lineB.setAttribute("y2", ((svgSize.h - setting.outer_frame_stroke_width / 2) * asp).toString());
+                lineB.setAttribute("stroke-width", (setting.outer_frame_stroke_width * asp).toString());
+                lineB.setAttribute("stroke", setting.outer_frame_stroke);
+                svg.appendChild(lineB);
+            }
+            if (setting.col_dir_line) {
+                let lineL = document.createElementNS(theXmlns, "line");
+                lineL.setAttribute("x1", (setting.outer_frame_stroke_width / 2 * asp).toString());
+                lineL.setAttribute("x2", (setting.outer_frame_stroke_width / 2 * asp).toString());
+                lineL.setAttribute("y1", "0");
+                lineL.setAttribute("y2", (svgSize.h * asp).toString());
+                lineL.setAttribute("stroke-width", (setting.outer_frame_stroke_width * asp).toString());
+                lineL.setAttribute("stroke", setting.outer_frame_stroke);
+                svg.appendChild(lineL);
+                let lineR = document.createElementNS(theXmlns, "line");
+                lineR.setAttribute("x1", ((svgSize.w - setting.outer_frame_stroke_width / 2) * asp).toString());
+                lineR.setAttribute("x2", ((svgSize.w - setting.outer_frame_stroke_width / 2) * asp).toString());
+                lineR.setAttribute("y1", "0");
+                lineR.setAttribute("y2", (svgSize.h * asp).toString());
+                lineR.setAttribute("stroke-width", (setting.outer_frame_stroke_width * asp).toString());
+                lineR.setAttribute("stroke", setting.outer_frame_stroke);
+                svg.appendChild(lineR);
+            }
+        }
+    }
 }
 /**
  * Drow Table using SVG.
@@ -1155,8 +1306,247 @@ function addVectorTable(id, setting, head, body) {
         vectorTable.createAndAppendHeaderBackground(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
         vectorTable.putContents(svg, setting, divideHeader, body, cellMatrix, asp, maxRowHeights);
         vectorTable.createAndAppendFrame(svg, setting, cellMatrix, asp, svgSize);
+        vectorTable.createAndAppendHeaderFrame(svg, setting, cellMatrix, asp, svgSize, divideHeader.length);
+        //vectorTable.createAndAppendOuterFrame(svg, setting, svgSize, asp);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');
+    }
+}
+/** Class for generate default setting */
+class VectorTableSetting {
+    constructor() {
+    }
+    ;
+    /**
+     * Generate default Setting
+     *
+     * @param  {string} settingName setting name
+     * @returns {object} default setting
+     */
+    genDefaultSetting(settingName) {
+        switch (settingName) {
+            case "vt_simple_black":
+                let vt_simple_black = {
+                    stroke_width: 1,
+                    header_row: true,
+                    header_stroke_width: 3,
+                    header_font_stroke_width: 1,
+                    outer_frame: true,
+                    outer_frame_stroke_width: 6,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                };
+                return vt_simple_black;
+            case "vt_simple_black_hc1":
+                let vt_simple_black_hc1 = {
+                    stroke_width: 1,
+                    header_row: true,
+                    header_col: true,
+                    header_stroke_width: 3,
+                    header_font_stroke_width: 1,
+                    header_col_pos: 1,
+                    outer_frame: true,
+                    outer_frame_stroke_width: 6,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                };
+                return vt_simple_black_hc1;
+            case "vt_stripes_black":
+                let vt_stripes_black = {
+                    stroke: "white",
+                    stroke_width: 1.5,
+                    background_color: "#f9f9f9",
+                    header_row: true,
+                    header_background_color: "black",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "white",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "gray",
+                };
+                return vt_stripes_black;
+            case "vt_stripes_blue":
+                let vt_stripes_blue = {
+                    stroke: "white",
+                    stroke_width: 1.5,
+                    background_color: "#fffff9",
+                    header_row: true,
+                    header_background_color: "#0000e1",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "white",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#97bdff",
+                };
+                return vt_stripes_blue;
+            case "vt_stripes_green":
+                let vt_stripes_green = {
+                    stroke: "white",
+                    stroke_width: 1.5,
+                    background_color: "#fafaff",
+                    header_row: true,
+                    header_background_color: "#339900",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "white",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#e1eec1",
+                };
+                return vt_stripes_green;
+            case "vt_stripes_orange":
+                let vt_stripes_orange = {
+                    stroke: "white",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#f15922",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "white",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#ffe0b6",
+                };
+                return vt_stripes_orange;
+            case "vt_pale_gray":
+                let vt_pale_gray = {
+                    stroke: "#000000",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#dddddd",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#000000",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#eeeeee",
+                };
+                return vt_pale_gray;
+            case "vt_pale_gray_hc1":
+                let vt_pale_gray_hc1 = {
+                    stroke: "#000000",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_col: true,
+                    header_background_color: "#dddddd",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#000000",
+                    header_col_pos: 1,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#eeeeee",
+                };
+                return vt_pale_gray_hc1;
+            case "vt_pale_blue":
+                let vt_pale_blue = {
+                    stroke: "#0c4da2",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#97cdf3",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#0c4da2",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#dbedf0",
+                };
+                return vt_pale_blue;
+            case "vt_pale_blue_hc1":
+                let vt_pale_blue_hc1 = {
+                    stroke: "#0c4da2",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_col: true,
+                    header_background_color: "#97cdf3",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#0c4da2",
+                    header_col_pos: 1,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#dbedf0",
+                };
+                return vt_pale_blue_hc1;
+            case "vt_pale_green":
+                let vt_pale_green = {
+                    stroke: "#339900",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#c9f1c2",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#339900",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#e9fec9",
+                };
+                return vt_pale_green;
+            case "vt_pale_green_hc1":
+                let vt_pale_green_hc1 = {
+                    id: "",
+                    stroke: "#339900",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_col: true,
+                    header_background_color: "#c9f1c2",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#339900",
+                    header_col_pos: 1,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#e9fec9",
+                };
+                return vt_pale_green_hc1;
+            case "vt_pale_orange":
+                let vt_pale_orange = {
+                    id: "",
+                    stroke: "#f37053",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_background_color: "#ffe0b6",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#f0821e",
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#fff0cf",
+                };
+                return vt_pale_orange;
+            case "vt_pale_orange_hc1":
+                let vt_pale_orange_hc1 = {
+                    id: "",
+                    stroke: "#f37053",
+                    stroke_width: 1.5,
+                    background_color: "#fffffa",
+                    header_row: true,
+                    header_col: true,
+                    header_background_color: "#ffe0b6",
+                    header_font_stroke_width: 0.5,
+                    header_font_stroke: "#f0821e",
+                    header_col_pos: 1,
+                    text_font_size: 20,
+                    text_margin_right: 5,
+                    text_margin_left: 5,
+                    shima_shima: "#fff0cf",
+                };
+                return vt_pale_orange_hc1;
+            default:
+                throw Error("There is no setting of " + settingName);
+        }
     }
 }

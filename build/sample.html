@@ -15,7 +15,6 @@
     <div id="target2" style="width: 600px; height: 400px;"></div>
 
     <script>
-        const test_setting = {};
         const demo_setting = {
             //--- Basic ---
             row_dir_line: true,
@@ -99,7 +98,11 @@
             dataMatrix.push(dataLine);
         }
 
-        addVectorTable("target1",demo_setting,headerMatrix,dataMatrix)
-        //addVectorTable("target2",demo_setting,"","")
+        addVectorTable("target1",demo_setting,headerMatrix,dataMatrix);
+
+        // Use default setting
+        let VtSetting = new VectorTableSetting();
+        let defaultSetting = VtSetting.genDefaultSetting("vt_stripes_green");
+        addVectorTable("target2",defaultSetting,headerMatrix,dataMatrix);
     </script>
 </html>
