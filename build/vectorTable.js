@@ -1033,7 +1033,15 @@ class VectorTable {
             lineU.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
             lineU.setAttribute("stroke", setting.stroke);
             svg.appendChild(lineU);
-            for (let i = 0; i < cellDataMatrix.length; i++) {
+            let lineD = document.createElementNS(theXmlns, "line");
+            lineD.setAttribute("x1", "0");
+            lineD.setAttribute("x2", (svgSize.w * asp).toString());
+            lineD.setAttribute("y1", ((svgSize.h - setting.stroke_width / 2) * asp).toString());
+            lineD.setAttribute("y2", ((svgSize.h - setting.stroke_width / 2) * asp).toString());
+            lineD.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+            lineD.setAttribute("stroke", setting.stroke);
+            svg.appendChild(lineD);
+            for (let i = 0; i < cellDataMatrix.length - 1; i++) {
                 let y = (cellDataMatrix[i][0].y + setting.text_margin_bottom - setting.stroke_width / 2) * asp;
                 if (cellDataMatrix[i][0].row) {
                     let line = document.createElementNS(theXmlns, "line");
@@ -1242,7 +1250,7 @@ function addVectorTable(id, setting, head, body) {
         vectorTable.putContents(svg, setting, divideHeader, body, cellMatrix, asp, maxRowHeights);
         vectorTable.createAndAppendFrame(svg, setting, cellMatrix, asp, svgSize);
         vectorTable.createAndAppendHeaderFrame(svg, setting, cellMatrix, asp, svgSize, divideHeader.length);
-        vectorTable.createAndAppendOuterFrame(svg, setting, svgSize, asp);
+        //vectorTable.createAndAppendOuterFrame(svg, setting, svgSize, asp);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');
