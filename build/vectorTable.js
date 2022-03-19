@@ -1127,6 +1127,44 @@ class VectorTable {
             }
         }
     }
+    /**
+     * Add frame line for header on table.
+     *
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {CellSize[][]} cellDataMatrix
+     * @param  {number} asp
+     * @param  {SvgSize} svgSize
+     * @param  {number} numHeaderRow
+     */
+    createAndAppendHeaderFrame(svg, setting, cellDataMatrix, asp, svgSize, numHeaderRow) {
+        // row
+        if (setting.row_dir_line) {
+            if (setting.header_row) {
+                let line = document.createElementNS(theXmlns, "line");
+                line.setAttribute("x1", "0");
+                line.setAttribute("x2", (svgSize.w * asp).toString());
+                line.setAttribute("y1", ((cellDataMatrix[numHeaderRow - 1][0].y + setting.text_margin_bottom + setting.stroke_width / 2) * asp).toString());
+                line.setAttribute("y2", ((cellDataMatrix[numHeaderRow - 1][0].y + setting.text_margin_bottom + setting.stroke_width / 2) * asp).toString());
+                line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                line.setAttribute("stroke", setting.stroke);
+                svg.appendChild(line);
+            }
+        }
+        //col
+        if (setting.col_dir_line) {
+            if (setting.header_col) {
+                let line = document.createElementNS(theXmlns, "line");
+                line.setAttribute("x1", ((cellDataMatrix[0][setting.header_col_pos].x - setting.text_margin_left - setting.stroke_width / 2) * asp).toString());
+                line.setAttribute("x2", ((cellDataMatrix[0][setting.header_col_pos].x - setting.text_margin_left - setting.stroke_width / 2) * asp).toString());
+                line.setAttribute("y1", "0");
+                line.setAttribute("y2", (svgSize.h * asp).toString());
+                line.setAttribute("stroke-width", (setting.stroke_width * asp).toString());
+                line.setAttribute("stroke", setting.stroke);
+                svg.appendChild(line);
+            }
+        }
+    }
 }
 /**
  * Drow Table using SVG.
@@ -1155,6 +1193,7 @@ function addVectorTable(id, setting, head, body) {
         vectorTable.createAndAppendHeaderBackground(svg, setting, cellMatrix, svgSize, asp, divideHeader.length);
         vectorTable.putContents(svg, setting, divideHeader, body, cellMatrix, asp, maxRowHeights);
         vectorTable.createAndAppendFrame(svg, setting, cellMatrix, asp, svgSize);
+        vectorTable.createAndAppendHeaderFrame(svg, setting, cellMatrix, asp, svgSize, divideHeader.length);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');
