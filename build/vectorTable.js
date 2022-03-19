@@ -1165,6 +1165,54 @@ class VectorTable {
             }
         }
     }
+    /**
+     * Add outer frame line on table
+     *
+     * @param  {HTMLElement} svg
+     * @param  {SettingVectorTable} setting
+     * @param  {SvgSize} svgSize
+     * @param  {number} asp
+     */
+    createAndAppendOuterFrame(svg, setting, svgSize, asp) {
+        if (setting.outer_frame) {
+            if (setting.row_dir_line) {
+                let lineT = document.createElementNS(theXmlns, "line");
+                lineT.setAttribute("x1", "0");
+                lineT.setAttribute("x2", (svgSize.w * asp).toString());
+                lineT.setAttribute("y1", (setting.outer_frame_stroke_width / 2 * asp).toString());
+                lineT.setAttribute("y2", (setting.outer_frame_stroke_width / 2 * asp).toString());
+                lineT.setAttribute("stroke-width", (setting.outer_frame_stroke_width * asp).toString());
+                lineT.setAttribute("stroke", setting.outer_frame_stroke);
+                svg.appendChild(lineT);
+                let lineB = document.createElementNS(theXmlns, "line");
+                lineB.setAttribute("x1", "0");
+                lineB.setAttribute("x2", (svgSize.w * asp).toString());
+                lineB.setAttribute("y1", ((svgSize.h - setting.outer_frame_stroke_width / 2) * asp).toString());
+                lineB.setAttribute("y2", ((svgSize.h - setting.outer_frame_stroke_width / 2) * asp).toString());
+                lineB.setAttribute("stroke-width", (setting.outer_frame_stroke_width * asp).toString());
+                lineB.setAttribute("stroke", setting.outer_frame_stroke);
+                svg.appendChild(lineB);
+            }
+            if (setting.col_dir_line) {
+                let lineL = document.createElementNS(theXmlns, "line");
+                lineL.setAttribute("x1", (setting.outer_frame_stroke_width / 2 * asp).toString());
+                lineL.setAttribute("x2", (setting.outer_frame_stroke_width / 2 * asp).toString());
+                lineL.setAttribute("y1", "0");
+                lineL.setAttribute("y2", (svgSize.h * asp).toString());
+                lineL.setAttribute("stroke-width", (setting.outer_frame_stroke_width * asp).toString());
+                lineL.setAttribute("stroke", setting.outer_frame_stroke);
+                svg.appendChild(lineL);
+                let lineR = document.createElementNS(theXmlns, "line");
+                lineR.setAttribute("x1", ((svgSize.w - setting.outer_frame_stroke_width / 2) * asp).toString());
+                lineR.setAttribute("x2", ((svgSize.w - setting.outer_frame_stroke_width / 2) * asp).toString());
+                lineR.setAttribute("y1", "0");
+                lineR.setAttribute("y2", (svgSize.h * asp).toString());
+                lineR.setAttribute("stroke-width", (setting.outer_frame_stroke_width * asp).toString());
+                lineR.setAttribute("stroke", setting.outer_frame_stroke);
+                svg.appendChild(lineR);
+            }
+        }
+    }
 }
 /**
  * Drow Table using SVG.
@@ -1194,6 +1242,7 @@ function addVectorTable(id, setting, head, body) {
         vectorTable.putContents(svg, setting, divideHeader, body, cellMatrix, asp, maxRowHeights);
         vectorTable.createAndAppendFrame(svg, setting, cellMatrix, asp, svgSize);
         vectorTable.createAndAppendHeaderFrame(svg, setting, cellMatrix, asp, svgSize, divideHeader.length);
+        vectorTable.createAndAppendOuterFrame(svg, setting, svgSize, asp);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');
