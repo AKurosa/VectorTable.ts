@@ -1307,7 +1307,7 @@ function addVectorTable(id, setting, head, body) {
         vectorTable.putContents(svg, setting, divideHeader, body, cellMatrix, asp, maxRowHeights);
         vectorTable.createAndAppendFrame(svg, setting, cellMatrix, asp, svgSize);
         vectorTable.createAndAppendHeaderFrame(svg, setting, cellMatrix, asp, svgSize, divideHeader.length);
-        //vectorTable.createAndAppendOuterFrame(svg, setting, svgSize, asp);
+        vectorTable.createAndAppendOuterFrame(svg, setting, svgSize, asp);
     }
     catch (error) {
         throw new Error(error + ' [vectorTable]');
