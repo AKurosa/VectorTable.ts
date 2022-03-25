@@ -1,6 +1,10 @@
 # VectorTable.ts
 The html Table using SVG and TypeScript.
 
+![vtZoomPan](image/table_1.gif)
+
+![vtResize](image/table_2.gif)
+
 ![vt_stripes_green](DesignTemplate/image/vt_stripes_green.png)
 
 ## How to use
